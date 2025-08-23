@@ -83,6 +83,7 @@
             <tr>
               <th style="width:120px">CODIGO</th>
               <th style="width:80px">CANT.</th>
+              <th style="width:80px">m²</th>
               <th>DESCRIPCION</th>
               <th style="width:160px" class="num">PRECIO UNIT.</th>
               <th style="width:160px" class="num">PRECIO TOTAL</th>
@@ -94,17 +95,17 @@
           </tbody>
           <tfoot>
             <tr class="subtotal">
-              <td colspan="4" class="num"><strong>SUBTOTAL S/</strong></td>
+              <td colspan="5" class="num"><strong>SUBTOTAL S/</strong></td>
               <td class="num" id="vSubtotal">0.00</td>
               <td></td>
             </tr>
             <tr class="igv">
-              <td colspan="4" class="num"><strong>IGV 18% S/</strong></td>
+              <td colspan="5" class="num"><strong>IGV 18% S/</strong></td>
               <td class="num" id="vIgv">0.00</td>
               <td></td>
             </tr>
             <tr class="total">
-              <td colspan="4" class="num"><strong>TOTAL S/</strong></td>
+              <td colspan="5" class="num"><strong>TOTAL S/</strong></td>
               <td class="num" id="vTotal">0.00</td>
               <td></td>
             </tr>
@@ -137,6 +138,7 @@
     tr.innerHTML = `
       <td><input class="cell" placeholder="MG01" value="${data.codigo||''}"></td>
       <td><input class="cell center qty" type="number" min="0" step="1" placeholder="1" value="${data.cant||''}"></td>
+      <td><input class="cell center m2" type="number" min="0" step="0.01" placeholder="0.00" value="${data.m2||''}"></td>
       <td><input class="cell" placeholder="Descripción del producto" value="${data.desc||''}"></td>
       <td class="num"><input class="cell right unit" type="number" min="0" step="0.01" placeholder="0.00" value="${data.unit||''}"></td>
       <td class="num total">0.00</td>
@@ -145,8 +147,10 @@
 
     // eventos
     const qty = tr.querySelector('.qty');
+    const m2 = tr.querySelector('.m2');
     const unit = tr.querySelector('.unit');
     qty.addEventListener('input', recalcAll);
+    m2.addEventListener('input', recalcAll);
     unit.addEventListener('input', recalcAll);
     tr.querySelector('button').addEventListener('click', () => { tr.remove(); recalcAll(); });
 
@@ -157,9 +161,10 @@
 
   // Recalcula una fila
   function recalcRow(tr){
-    const q = num(tr.querySelector('.qty').value);
+    const qty = num(tr.querySelector('.qty').value);
     const u = num(tr.querySelector('.unit').value);
-    const total = q * u;
+    const m2 = num(tr.querySelector('.m2').value);
+    const total = m2 * u * qty;
     tr.querySelector('.total').textContent = money(total);
   }
 
@@ -180,9 +185,10 @@
     const rows = [...document.querySelectorAll('#body tr')].map(tr => ({
       codigo: tr.children[0].querySelector('input').value.trim(),
       cant: tr.children[1].querySelector('input').value.trim(),
-      desc: tr.children[2].querySelector('input').value.trim(),
-      unit: tr.children[3].querySelector('input').value.trim(),
-      total: tr.children[4].textContent.trim()
+      m2: tr.children[2].querySelector('input').value.trim(),
+      desc: tr.children[3].querySelector('input').value.trim(),
+      unit: tr.children[4].querySelector('input').value.trim(),
+      total: tr.children[5].textContent.trim()
     }));
     const subtotal = document.getElementById('vSubtotal').textContent;
     const igv = document.getElementById('vIgv').textContent;
@@ -294,18 +300,19 @@
       cant: tr.children[1].querySelector('input').value,
       desc: tr.children[2].querySelector('input').value,
       unit: tr.children[3].querySelector('input').value,
-      total: tr.children[4].textContent
+      m2: tr.children[4].querySelector('input').value,
+      total: tr.children[5].textContent
     })));
 
-    const body = rows.map(r => [r.codigo||'', r.cant||'', r.desc||'', money(num(r.unit)), r.total||'0.00']);
+    const body = rows.map(r => [r.codigo||'', r.cant||'', r.desc||'', money(num(r.unit)), r.m2||'0.00', r.total||'0.00']);
 
     doc.autoTable({
       startY: 140,
-      head: [['CODIGO','CANT.','DESCRIPCION','PRECIO UNIT.','PRECIO TOTAL']],
+      head: [['CODIGO','CANT.','DESCRIPCION','PRECIO UNIT.','m²','PRECIO TOTAL']],
       body,
       styles: { fontSize:10, cellPadding:4 },
       headStyles: { fillColor:[243,244,246], textColor:20 },
-      columnStyles: { 1:{halign:'right'}, 3:{halign:'right'}, 4:{halign:'right'} }
+      columnStyles: { 1:{halign:'right'}, 3:{halign:'right'}, 4:{halign:'right'}, 5:{halign:'right'} }
     });
 
     // Totales
