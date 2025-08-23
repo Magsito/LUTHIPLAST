@@ -11,20 +11,15 @@
 
   <style>
     :root{
-      --bg: #0c1434; /* Fondo oscuro */
-      --card: #ffffff; /* Fondo blanco para las tarjetas */
-      --ink: #0c1434; /* Texto claro */
-      --primary: #7e8a97; /* Color primario de texto */
-      --primary-ink: #fff; /* Texto en color blanco */
-      --line: #e5e7eb;
+      --bg:#f7f7f8; --card:#ffffff; --ink:#222; --muted:#6b7280;
+      --primary:#0ea5e9; --primary-ink:#fff; --line:#e5e7eb;
     }
     *{box-sizing:border-box}
     body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial; background:var(--bg); color:var(--ink)}
     .wrap{max-width:1000px; margin:28px auto; padding:0 16px}
     .card{background:var(--card); border:1px solid var(--line); border-radius:12px; box-shadow:0 4px 14px rgba(0,0,0,.05)}
     header{display:flex; align-items:center; gap:12px; padding:20px 22px; border-bottom:1px solid var(--line)}
-    header img{width:50px; height:auto;} /* Logo */
-    header h1{margin:0; font-size:24px; color: var(--primary)}
+    header h1{margin:0; font-size:24px}
     .form{display:grid; grid-template-columns:1fr 1fr; gap:14px 18px; padding:18px 22px}
     .field{display:flex; gap:10px; align-items:center}
     .field label{width:110px; color:var(--muted); font-size:14px}
@@ -61,7 +56,7 @@
   <div class="wrap">
     <div class="card">
       <header>
-        <img src="Diseño sin título.png" alt="Luthiplast Logo"> <!-- Aquí debes poner la ruta de tu logo -->
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 5h14v14H5z" stroke="#111827" stroke-width="2"/><path d="M8 9h8M8 13h8" stroke="#0ea5e9" stroke-width="2"/></svg>
         <h1>Nueva Cotización</h1>
       </header>
 
@@ -72,10 +67,6 @@
         <div class="field"><label>Ruc:</label><input id="company" placeholder="Ingrese RUC"></div>
         <div class="field"><label>Teléfono:</label><input id="tel2" placeholder="2222-2222"></div>
         <div class="field"><label>Email:</label><input id="email" placeholder="info@tuempresa.com"></div>
-        <!-- Checkbox para "Cotizar por metros cuadrados" -->
-        <div class="field">
-          <label><input type="checkbox" id="cotizarPorM2"> Cotizar por metros cuadrados</label>
-        </div>
       </div>
 
       <!-- Acciones -->
@@ -92,7 +83,7 @@
             <tr>
               <th style="width:120px">CODIGO</th>
               <th style="width:80px">CANT.</th>
-              <th style="width:80px" id="m2Header">m²</th>
+              <th style="width:80px">m²</th>
               <th>DESCRIPCION</th>
               <th style="width:160px" class="num">PRECIO UNIT.</th>
               <th style="width:160px" class="num">PRECIO TOTAL</th>
@@ -174,8 +165,9 @@
     const u = num(tr.querySelector('.unit').value);
     const m2 = num(tr.querySelector('.m2').value);
     
-    // Si m² está vacío, se calcula como Precio Unit. * Cantidad
+    // Condicional: si m² está vacío, se calcula como precio unitario por cantidad
     const total = m2 ? (m2 * u * qty) : (u * qty);
+    
     tr.querySelector('.total').textContent = money(total);
   }
 
@@ -190,20 +182,6 @@
     document.getElementById('vIgv').textContent = money(igv);
     document.getElementById('vTotal').textContent = money(total);
   }
-
-  // Mostrar/Ocultar columna de m²
-  document.getElementById('cotizarPorM2').addEventListener('change', function() {
-    const m2Column = document.getElementById('m2Header');
-    const m2Cells = document.querySelectorAll('.m2');
-    
-    if(this.checked) {
-      m2Column.style.display = 'table-cell';
-      m2Cells.forEach(cell => cell.style.display = 'table-cell');
-    } else {
-      m2Column.style.display = 'none';
-      m2Cells.forEach(cell => cell.style.display = 'none');
-    }
-  });
 
   // Guardar cotización (total general, no los totales por ítem)
   function saveQuote(){
