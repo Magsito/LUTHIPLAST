@@ -67,6 +67,10 @@
         <div class="field"><label>Ruc:</label><input id="company" placeholder="Ingrese RUC"></div>
         <div class="field"><label>Teléfono:</label><input id="tel2" placeholder="2222-2222"></div>
         <div class="field"><label>Email:</label><input id="email" placeholder="info@tuempresa.com"></div>
+        <!-- Checkbox para "Cotizar por metros cuadrados" -->
+        <div class="field">
+          <label><input type="checkbox" id="cotizarPorM2"> Cotizar por metros cuadrados</label>
+        </div>
       </div>
 
       <!-- Acciones -->
@@ -83,7 +87,7 @@
             <tr>
               <th style="width:120px">CODIGO</th>
               <th style="width:80px">CANT.</th>
-              <th style="width:80px">m²</th>
+              <th style="width:80px" id="m2Header">m²</th>
               <th>DESCRIPCION</th>
               <th style="width:160px" class="num">PRECIO UNIT.</th>
               <th style="width:160px" class="num">PRECIO TOTAL</th>
@@ -165,9 +169,8 @@
     const u = num(tr.querySelector('.unit').value);
     const m2 = num(tr.querySelector('.m2').value);
     
-    // Condicional: si m² está vacío, se calcula como precio unitario por cantidad
+    // Si m² está vacío, se calcula como Precio Unit. * Cantidad
     const total = m2 ? (m2 * u * qty) : (u * qty);
-    
     tr.querySelector('.total').textContent = money(total);
   }
 
@@ -182,6 +185,20 @@
     document.getElementById('vIgv').textContent = money(igv);
     document.getElementById('vTotal').textContent = money(total);
   }
+
+  // Mostrar/Ocultar columna de m²
+  document.getElementById('cotizarPorM2').addEventListener('change', function() {
+    const m2Column = document.getElementById('m2Header');
+    const m2Cells = document.querySelectorAll('.m2');
+    
+    if(this.checked) {
+      m2Column.style.display = 'table-cell';
+      m2Cells.forEach(cell => cell.style.display = 'table-cell');
+    } else {
+      m2Column.style.display = 'none';
+      m2Cells.forEach(cell => cell.style.display = 'none');
+    }
+  });
 
   // Guardar cotización (total general, no los totales por ítem)
   function saveQuote(){
