@@ -1,56 +1,56 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Nueva Cotización</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Nueva Cotización</title>
 
-<!-- jsPDF + AutoTable (para PDF) -->
-<script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <!-- jsPDF + AutoTable (para PDF) -->
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
-<style>
-  :root{
-    --bg:#f7f7f8; --card:#ffffff; --ink:#222; --muted:#6b7280;
-    --primary:#0ea5e9; --primary-ink:#fff; --line:#e5e7eb;
-  }
-  *{box-sizing:border-box}
-  body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial; background:var(--bg); color:var(--ink)}
-  .wrap{max-width:1000px; margin:28px auto; padding:0 16px}
-  .card{background:var(--card); border:1px solid var(--line); border-radius:12px; box-shadow:0 4px 14px rgba(0,0,0,.05)}
-  header{display:flex; align-items:center; gap:12px; padding:20px 22px; border-bottom:1px solid var(--line)}
-  header h1{margin:0; font-size:24px}
-  .form{display:grid; grid-template-columns:1fr 1fr; gap:14px 18px; padding:18px 22px}
-  .field{display:flex; gap:10px; align-items:center}
-  .field label{width:110px; color:var(--muted); font-size:14px}
-  .field input{flex:1; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:15px}
-  .toolbar{display:flex; justify-content:flex-end; gap:10px; padding:0 22px 16px}
-  .btn{border:1px solid var(--line); background:#fff; padding:10px 14px; border-radius:8px; cursor:pointer; font-weight:600}
-  .btn.primary{background:var(--primary); color:var(--primary-ink); border:none}
-  .btn.icon{display:inline-flex; align-items:center; gap:8px}
-  .btn:active{transform:translateY(1px)}
-  table{width:100%; border-collapse:collapse; font-size:14px}
-  thead th{background:#f3f4f6; text-align:left; padding:12px; border-bottom:1px solid var(--line); color:#111827}
-  tbody td{padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:middle}
-  tbody td.num{text-align:right; white-space:nowrap}
-  tbody td.actions{width:40px; text-align:center}
-  tfoot td{padding:8px 12px}
-  tfoot tr.subtotal td,
-  tfoot tr.igv td,
-  tfoot tr.total td{border-top:1px solid var(--line)}
-  tfoot tr.total td{font-weight:800; font-size:16px}
-  input.cell{width:100%; border:1px solid var(--line); border-radius:6px; padding:8px 10px; font-size:14px}
-  input.cell.center{text-align:center}
-  input.cell.right{text-align:right}
-  .aside{padding:16px 22px 22px; border-top:1px solid var(--line)}
-  .log{margin-top:24px}
-  .log h3{margin:0 0 10px 0; font-size:18px}
-  .log ul{list-style:none; padding:0; margin:0; display:grid; gap:8px}
-  .log li{display:flex; align-items:center; justify-content:space-between; background:#fff; border:1px solid var(--line); border-radius:10px; padding:10px 12px}
-  .log small{color:var(--muted)}
-  .log .rowbtns{display:flex; gap:8px}
-  .ghost{color:var(--muted); font-style:italic}
-</style>
+  <style>
+    :root {
+      --bg:#f7f7f8; --card:#ffffff; --ink:#222; --muted:#6b7280;
+      --primary:#0ea5e9; --primary-ink:#fff; --line:#e5e7eb;
+    }
+    *{box-sizing:border-box}
+    body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial; background:var(--bg); color:var(--ink)}
+    .wrap{max-width:1000px; margin:28px auto; padding:0 16px}
+    .card{background:var(--card); border:1px solid var(--line); border-radius:12px; box-shadow:0 4px 14px rgba(0,0,0,.05)}
+    header{display:flex; align-items:center; gap:12px; padding:20px 22px; border-bottom:1px solid var(--line)}
+    header h1{margin:0; font-size:24px}
+    .form{display:grid; grid-template-columns:1fr 1fr; gap:14px 18px; padding:18px 22px}
+    .field{display:flex; gap:10px; align-items:center}
+    .field label{width:110px; color:var(--muted); font-size:14px}
+    .field input{flex:1; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:15px}
+    .toolbar{display:flex; justify-content:flex-end; gap:10px; padding:0 22px 16px}
+    .btn{border:1px solid var(--line); background:#fff; padding:10px 14px; border-radius:8px; cursor:pointer; font-weight:600}
+    .btn.primary{background:var(--primary); color:var(--primary-ink); border:none}
+    .btn.icon{display:inline-flex; align-items:center; gap:8px}
+    .btn:active{transform:translateY(1px)}
+    table{width:100%; border-collapse:collapse; font-size:14px}
+    thead th{background:#f3f4f6; text-align:left; padding:12px; border-bottom:1px solid var(--line); color:#111827}
+    tbody td{padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:middle}
+    tbody td.num{text-align:right; white-space:nowrap}
+    tbody td.actions{width:40px; text-align:center}
+    tfoot td{padding:8px 12px}
+    tfoot tr.subtotal td,
+    tfoot tr.igv td,
+    tfoot tr.total td{border-top:1px solid var(--line)}
+    tfoot tr.total td{font-weight:800; font-size:16px}
+    input.cell{width:100%; border:1px solid var(--line); border-radius:6px; padding:8px 10px; font-size:14px}
+    input.cell.center{text-align:center}
+    input.cell.right{text-align:right}
+    .aside{padding:16px 22px 22px; border-top:1px solid var(--line)}
+    .log{margin-top:24px}
+    .log h3{margin:0 0 10px 0; font-size:18px}
+    .log ul{list-style:none; padding:0; margin:0; display:grid; gap:8px}
+    .log li{display:flex; align-items:center; justify-content:space-between; background:#fff; border:1px solid var(--line); border-radius:10px; padding:10px 12px}
+    .log small{color:var(--muted)}
+    .log .rowbtns{display:flex; gap:8px}
+    .ghost{color:var(--muted); font-style:italic}
+  </style>
 </head>
 <body>
   <div class="wrap">
@@ -317,21 +317,3 @@
     doc.setFontSize(11);
     doc.text(`SUBTOTAL: S/ ${subtotal}`, 400, y);
     doc.text(`IGV 18%: S/ ${igv}`, 400, y+16);
-    doc.setFontSize(12);
-    doc.text(`TOTAL: S/ ${total}`, 400, y+36);
-
-    doc.save((q?.id || 'cotizacion') + '.pdf');
-  }
-
-  // Imprimir
-  function printPage(){ window.print(); }
-
-  // Eventos UI
-  document.getElementById('btnAdd').addEventListener('click', () => addRow());
-  document.getElementById('btnPdf').addEventListener('click', () => downloadPDF());
-  document.getElementById('btnPrint').addEventListener('click', printPage);
-  document.getElementById('btnSave').addEventListener('click', saveQuote);
-
-</script>
-</body>
-</html>
