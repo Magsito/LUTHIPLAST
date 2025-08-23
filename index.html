@@ -1,56 +1,56 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Nueva Cotización</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Nueva Cotización</title>
 
-<!-- jsPDF + AutoTable (para PDF) -->
-<script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <!-- jsPDF + AutoTable (para PDF) -->
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
-<style>
-  :root{
-    --bg:#f7f7f8; --card:#ffffff; --ink:#222; --muted:#6b7280;
-    --primary:#0ea5e9; --primary-ink:#fff; --line:#e5e7eb;
-  }
-  *{box-sizing:border-box}
-  body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial; background:var(--bg); color:var(--ink)}
-  .wrap{max-width:1000px; margin:28px auto; padding:0 16px}
-  .card{background:var(--card); border:1px solid var(--line); border-radius:12px; box-shadow:0 4px 14px rgba(0,0,0,.05)}
-  header{display:flex; align-items:center; gap:12px; padding:20px 22px; border-bottom:1px solid var(--line)}
-  header h1{margin:0; font-size:24px}
-  .form{display:grid; grid-template-columns:1fr 1fr; gap:14px 18px; padding:18px 22px}
-  .field{display:flex; gap:10px; align-items:center}
-  .field label{width:110px; color:var(--muted); font-size:14px}
-  .field input{flex:1; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:15px}
-  .toolbar{display:flex; justify-content:flex-end; gap:10px; padding:0 22px 16px}
-  .btn{border:1px solid var(--line); background:#fff; padding:10px 14px; border-radius:8px; cursor:pointer; font-weight:600}
-  .btn.primary{background:var(--primary); color:var(--primary-ink); border:none}
-  .btn.icon{display:inline-flex; align-items:center; gap:8px}
-  .btn:active{transform:translateY(1px)}
-  table{width:100%; border-collapse:collapse; font-size:14px}
-  thead th{background:#f3f4f6; text-align:left; padding:12px; border-bottom:1px solid var(--line); color:#111827}
-  tbody td{padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:middle}
-  tbody td.num{text-align:right; white-space:nowrap}
-  tbody td.actions{width:40px; text-align:center}
-  tfoot td{padding:8px 12px}
-  tfoot tr.subtotal td,
-  tfoot tr.igv td,
-  tfoot tr.total td{border-top:1px solid var(--line)}
-  tfoot tr.total td{font-weight:800; font-size:16px}
-  input.cell{width:100%; border:1px solid var(--line); border-radius:6px; padding:8px 10px; font-size:14px}
-  input.cell.center{text-align:center}
-  input.cell.right{text-align:right}
-  .aside{padding:16px 22px 22px; border-top:1px solid var(--line)}
-  .log{margin-top:24px}
-  .log h3{margin:0 0 10px 0; font-size:18px}
-  .log ul{list-style:none; padding:0; margin:0; display:grid; gap:8px}
-  .log li{display:flex; align-items:center; justify-content:space-between; background:#fff; border:1px solid var(--line); border-radius:10px; padding:10px 12px}
-  .log small{color:var(--muted)}
-  .log .rowbtns{display:flex; gap:8px}
-  .ghost{color:var(--muted); font-style:italic}
-</style>
+  <style>
+    :root{
+      --bg:#f7f7f8; --card:#ffffff; --ink:#222; --muted:#6b7280;
+      --primary:#0ea5e9; --primary-ink:#fff; --line:#e5e7eb;
+    }
+    *{box-sizing:border-box}
+    body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial; background:var(--bg); color:var(--ink)}
+    .wrap{max-width:1000px; margin:28px auto; padding:0 16px}
+    .card{background:var(--card); border:1px solid var(--line); border-radius:12px; box-shadow:0 4px 14px rgba(0,0,0,.05)}
+    header{display:flex; align-items:center; gap:12px; padding:20px 22px; border-bottom:1px solid var(--line)}
+    header h1{margin:0; font-size:24px}
+    .form{display:grid; grid-template-columns:1fr 1fr; gap:14px 18px; padding:18px 22px}
+    .field{display:flex; gap:10px; align-items:center}
+    .field label{width:110px; color:var(--muted); font-size:14px}
+    .field input{flex:1; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:15px}
+    .toolbar{display:flex; justify-content:flex-end; gap:10px; padding:0 22px 16px}
+    .btn{border:1px solid var(--line); background:#fff; padding:10px 14px; border-radius:8px; cursor:pointer; font-weight:600}
+    .btn.primary{background:var(--primary); color:var(--primary-ink); border:none}
+    .btn.icon{display:inline-flex; align-items:center; gap:8px}
+    .btn:active{transform:translateY(1px)}
+    table{width:100%; border-collapse:collapse; font-size:14px}
+    thead th{background:#f3f4f6; text-align:left; padding:12px; border-bottom:1px solid var(--line); color:#111827}
+    tbody td{padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:middle}
+    tbody td.num{text-align:right; white-space:nowrap}
+    tbody td.actions{width:40px; text-align:center}
+    tfoot td{padding:8px 12px}
+    tfoot tr.subtotal td,
+    tfoot tr.igv td,
+    tfoot tr.total td{border-top:1px solid var(--line)}
+    tfoot tr.total td{font-weight:800; font-size:16px}
+    input.cell{width:100%; border:1px solid var(--line); border-radius:6px; padding:8px 10px; font-size:14px}
+    input.cell.center{text-align:center}
+    input.cell.right{text-align:right}
+    .aside{padding:16px 22px 22px; border-top:1px solid var(--line)}
+    .log{margin-top:24px}
+    .log h3{margin:0 0 10px 0; font-size:18px}
+    .log ul{list-style:none; padding:0; margin:0; display:grid; gap:8px}
+    .log li{display:flex; align-items:center; justify-content:space-between; background:#fff; border:1px solid var(--line); border-radius:10px; padding:10px 12px}
+    .log small{color:var(--muted)}
+    .log .rowbtns{display:flex; gap:8px}
+    .ghost{color:var(--muted); font-style:italic}
+  </style>
 </head>
 <body>
   <div class="wrap">
@@ -89,6 +89,7 @@
               <th style="width:80px" id="thCantidad">CANT.</th>
               <th id="thDescripcion">DESCRIPCION</th>
               <th style="width:160px" class="num" id="thPrecioUnit">PRECIO UNIT.</th>
+              <th style="width:160px" class="num" id="thPrecioM2">m²</th>
               <th style="width:160px" class="num" id="thPrecioTotal">PRECIO TOTAL</th>
               <th style="width:40px"></th>
             </tr>
@@ -98,17 +99,17 @@
           </tbody>
           <tfoot>
             <tr class="subtotal">
-              <td colspan="4" class="num"><strong>SUBTOTAL S/</strong></td>
+              <td colspan="5" class="num"><strong>SUBTOTAL S/</strong></td>
               <td class="num" id="vSubtotal">0.00</td>
               <td></td>
             </tr>
             <tr class="igv">
-              <td colspan="4" class="num"><strong>IGV 18% S/</strong></td>
+              <td colspan="5" class="num"><strong>IGV 18% S/</strong></td>
               <td class="num" id="vIgv">0.00</td>
               <td></td>
             </tr>
             <tr class="total">
-              <td colspan="4" class="num"><strong>TOTAL S/</strong></td>
+              <td colspan="5" class="num"><strong>TOTAL S/</strong></td>
               <td class="num" id="vTotal">0.00</td>
               <td></td>
             </tr>
@@ -139,17 +140,17 @@
     const isChecked = this.checked;
     const cantidadLabel = document.getElementById('thCantidad');
     const precioUnitLabel = document.getElementById('thPrecioUnit');
+    const precioM2Label = document.getElementById('thPrecioM2');
     const precioTotalLabel = document.getElementById('thPrecioTotal');
-    const codigoLabel = document.getElementById('thCodigo');
     
     // Cambiar los encabezados
     if (isChecked) {
       cantidadLabel.textContent = 'm²';
-      precioUnitLabel.textContent = 'Precio x m²';
-      precioTotalLabel.textContent = 'Precio Total x m²';
+      precioM2Label.textContent = 'Precio x m²';
+      precioTotalLabel.textContent = 'Precio Total';
     } else {
       cantidadLabel.textContent = 'CANT.';
-      precioUnitLabel.textContent = 'PRECIO UNIT.';
+      precioM2Label.textContent = 'Precio Unit.';
       precioTotalLabel.textContent = 'PRECIO TOTAL';
     }
 
@@ -166,6 +167,7 @@
       <td><input class="cell center qty" type="number" min="0" step="1" placeholder="1" value="${data.cant||''}"></td>
       <td><input class="cell" placeholder="Descripción del producto" value="${data.desc||''}"></td>
       <td class="num"><input class="cell right unit" type="number" min="0" step="0.01" placeholder="0.00" value="${data.unit||''}"></td>
+      <td class="num"><input class="cell right m2" type="number" min="0" step="0.01" placeholder="0.00" value="${data.m2||''}"></td>
       <td class="num total">0.00</td>
       <td class="actions"><button class="btn" title="Eliminar">🗑️</button></td>
     `;
@@ -173,8 +175,10 @@
     // eventos
     const qty = tr.querySelector('.qty');
     const unit = tr.querySelector('.unit');
+    const m2 = tr.querySelector('.m2');
     qty.addEventListener('input', recalcAll);
     unit.addEventListener('input', recalcAll);
+    m2.addEventListener('input', recalcAll);
     tr.querySelector('button').addEventListener('click', () => { tr.remove(); recalcAll(); });
 
     document.getElementById('body').appendChild(tr);
@@ -184,9 +188,10 @@
 
   // Recalcula una fila
   function recalcRow(tr){
-    const q = num(tr.querySelector('.qty').value);
+    const qty = num(tr.querySelector('.qty').value);
     const u = num(tr.querySelector('.unit').value);
-    const total = q * u;
+    const m2 = num(tr.querySelector('.m2').value);
+    const total = m2 * u * qty;
     tr.querySelector('.total').textContent = money(total);
   }
 
@@ -209,7 +214,8 @@
       cant: tr.children[1].querySelector('input').value.trim(),
       desc: tr.children[2].querySelector('input').value.trim(),
       unit: tr.children[3].querySelector('input').value.trim(),
-      total: tr.children[4].textContent.trim()
+      m2: tr.children[4].querySelector('input').value.trim(),
+      total: tr.children[5].textContent.trim()
     }));
     const subtotal = document.getElementById('vSubtotal').textContent;
     const igv = document.getElementById('vIgv').textContent;
@@ -321,18 +327,19 @@
       cant: tr.children[1].querySelector('input').value,
       desc: tr.children[2].querySelector('input').value,
       unit: tr.children[3].querySelector('input').value,
-      total: tr.children[4].textContent
+      m2: tr.children[4].querySelector('input').value,
+      total: tr.children[5].textContent
     })));
 
-    const body = rows.map(r => [r.codigo||'', r.cant||'', r.desc||'', money(num(r.unit)), r.total||'0.00']);
+    const body = rows.map(r => [r.codigo||'', r.cant||'', r.desc||'', money(num(r.unit)), r.m2||'0.00', r.total||'0.00']);
 
     doc.autoTable({
       startY: 140,
-      head: [['CODIGO','CANT.','DESCRIPCION','PRECIO UNIT.','PRECIO TOTAL']],
+      head: [['CODIGO','CANT.','DESCRIPCION','PRECIO UNIT.','m²','PRECIO TOTAL']],
       body,
       styles: { fontSize:10, cellPadding:4 },
       headStyles: { fillColor:[243,244,246], textColor:20 },
-      columnStyles: { 1:{halign:'right'}, 3:{halign:'right'}, 4:{halign:'right'} }
+      columnStyles: { 1:{halign:'right'}, 3:{halign:'right'}, 4:{halign:'right'}, 5:{halign:'right'} }
     });
 
     // Totales
@@ -361,8 +368,6 @@
 
   // Cargar cotizaciones guardadas al recargar la página
   window.onload = renderLog;
-
 </script>
 </body>
 </html>
-
