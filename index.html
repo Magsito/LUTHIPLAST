@@ -164,7 +164,10 @@
     const qty = num(tr.querySelector('.qty').value);
     const u = num(tr.querySelector('.unit').value);
     const m2 = num(tr.querySelector('.m2').value);
-    const total = m2 * u * qty;
+    
+    // Condicional: si m² está vacío, se calcula como precio unitario por cantidad
+    const total = m2 ? (m2 * u * qty) : (u * qty);
+    
     tr.querySelector('.total').textContent = money(total);
   }
 
