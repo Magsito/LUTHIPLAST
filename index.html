@@ -10,7 +10,7 @@
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
   <style>
-    :root {
+    :root{
       --bg:#f7f7f8; --card:#ffffff; --ink:#222; --muted:#6b7280;
       --primary:#0ea5e9; --primary-ink:#fff; --line:#e5e7eb;
     }
@@ -63,7 +63,7 @@
       <!-- Cabecera -->
       <div class="form">
         <div class="field"><label>Atención:</label><input id="att" placeholder="Nombre"></div>
-        <div class="field"><label>Teléfono:</label><input id="tel1" placeholder="7052-8888"></div>
+        <div class="field"><label>Celular:</label><input id="tel1" placeholder="7052-8888"></div>
         <div class="field"><label>Empresa:</label><input id="company" placeholder="Nombre de Empresa"></div>
         <div class="field"><label>Teléfono:</label><input id="tel2" placeholder="2222-2222"></div>
         <div class="field"><label>Email:</label><input id="email" placeholder="info@tuempresa.com"></div>
@@ -317,3 +317,23 @@
     doc.setFontSize(11);
     doc.text(`SUBTOTAL: S/ ${subtotal}`, 400, y);
     doc.text(`IGV 18%: S/ ${igv}`, 400, y+16);
+    doc.setFontSize(12);
+    doc.text(`TOTAL: S/ ${total}`, 400, y+36);
+
+    doc.save((q?.id || 'cotizacion') + '.pdf');
+  }
+
+  // Imprimir
+  function printPage(){ window.print(); }
+
+  // Eventos UI
+  document.getElementById('btnAdd').addEventListener('click', () => addRow());
+  document.getElementById('btnPdf').addEventListener('click', () => downloadPDF());
+  document.getElementById('btnPrint').addEventListener('click', printPage);
+  document.getElementById('btnSave').addEventListener('click', saveQuote);
+
+  // Cargar cotizaciones guardadas al recargar la página
+  window.onload = renderLog;
+</script>
+</body>
+</html>
