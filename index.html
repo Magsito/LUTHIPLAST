@@ -62,15 +62,11 @@
 
       <!-- Cabecera -->
       <div class="form">
-        <div class="field"><label>Atención:</label><input id="att" placeholder="Nombre"></div>
+        <div class="field"><label>Cliente:</label><input id="att" placeholder="Nombre"></div>
         <div class="field"><label>Celular:</label><input id="tel1" placeholder="7052-8888"></div>
-        <div class="field"><label>Empresa:</label><input id="company" placeholder="Nombre de Empresa"></div>
+        <div class="field"><label>Ruc:</label><input id="company" placeholder="Ingrese RUC"></div>
         <div class="field"><label>Teléfono:</label><input id="tel2" placeholder="2222-2222"></div>
         <div class="field"><label>Email:</label><input id="email" placeholder="info@tuempresa.com"></div>
-        <!-- Casilla de cotizar por metros cuadrados -->
-        <div class="field">
-          <label><input type="checkbox" id="cotizarPorM2"> Cotizar por metros cuadrados</label>
-        </div>
       </div>
 
       <!-- Acciones -->
@@ -85,12 +81,11 @@
         <table id="tabla">
           <thead>
             <tr>
-              <th style="width:120px" id="thCodigo">CODIGO</th>
-              <th style="width:80px" id="thCantidad">CANT.</th>
-              <th id="thDescripcion">DESCRIPCION</th>
-              <th style="width:160px" class="num" id="thPrecioUnit">PRECIO UNIT.</th>
-              <th style="width:160px" class="num" id="thPrecioM2">m²</th>
-              <th style="width:160px" class="num" id="thPrecioTotal">PRECIO TOTAL</th>
+              <th style="width:120px">CODIGO</th>
+              <th style="width:80px">CANT.</th>
+              <th>DESCRIPCION</th>
+              <th style="width:160px" class="num">PRECIO UNIT.</th>
+              <th style="width:160px" class="num">PRECIO TOTAL</th>
               <th style="width:40px"></th>
             </tr>
           </thead>
@@ -99,17 +94,17 @@
           </tbody>
           <tfoot>
             <tr class="subtotal">
-              <td colspan="5" class="num"><strong>SUBTOTAL S/</strong></td>
+              <td colspan="4" class="num"><strong>SUBTOTAL S/</strong></td>
               <td class="num" id="vSubtotal">0.00</td>
               <td></td>
             </tr>
             <tr class="igv">
-              <td colspan="5" class="num"><strong>IGV 18% S/</strong></td>
+              <td colspan="4" class="num"><strong>IGV 18% S/</strong></td>
               <td class="num" id="vIgv">0.00</td>
               <td></td>
             </tr>
             <tr class="total">
-              <td colspan="5" class="num"><strong>TOTAL S/</strong></td>
+              <td colspan="4" class="num"><strong>TOTAL S/</strong></td>
               <td class="num" id="vTotal">0.00</td>
               <td></td>
             </tr>
@@ -135,29 +130,6 @@
   const money = n => (isNaN(n)?0:n).toFixed(2);
   const num = v => parseFloat(String(v).replace(',', '.')) || 0;
 
-  // Cambiar los encabezados y la lógica de la tabla según la opción de "Cotizar por m2"
-  document.getElementById('cotizarPorM2').addEventListener('change', function() {
-    const isChecked = this.checked;
-    const cantidadLabel = document.getElementById('thCantidad');
-    const precioUnitLabel = document.getElementById('thPrecioUnit');
-    const precioM2Label = document.getElementById('thPrecioM2');
-    const precioTotalLabel = document.getElementById('thPrecioTotal');
-    
-    // Cambiar los encabezados
-    if (isChecked) {
-      cantidadLabel.textContent = 'm²';
-      precioM2Label.textContent = 'Precio x m²';
-      precioTotalLabel.textContent = 'Precio Total';
-    } else {
-      cantidadLabel.textContent = 'CANT.';
-      precioM2Label.textContent = 'Precio Unit.';
-      precioTotalLabel.textContent = 'PRECIO TOTAL';
-    }
-
-    // Recalcular los totales
-    recalcAll();
-  });
-
   // Agregar fila
   function addRow(data={}) {
     const tr = document.createElement('tr');
@@ -167,7 +139,6 @@
       <td><input class="cell center qty" type="number" min="0" step="1" placeholder="1" value="${data.cant||''}"></td>
       <td><input class="cell" placeholder="Descripción del producto" value="${data.desc||''}"></td>
       <td class="num"><input class="cell right unit" type="number" min="0" step="0.01" placeholder="0.00" value="${data.unit||''}"></td>
-      <td class="num"><input class="cell right m2" type="number" min="0" step="0.01" placeholder="0.00" value="${data.m2||''}"></td>
       <td class="num total">0.00</td>
       <td class="actions"><button class="btn" title="Eliminar">🗑️</button></td>
     `;
@@ -175,10 +146,8 @@
     // eventos
     const qty = tr.querySelector('.qty');
     const unit = tr.querySelector('.unit');
-    const m2 = tr.querySelector('.m2');
     qty.addEventListener('input', recalcAll);
     unit.addEventListener('input', recalcAll);
-    m2.addEventListener('input', recalcAll);
     tr.querySelector('button').addEventListener('click', () => { tr.remove(); recalcAll(); });
 
     document.getElementById('body').appendChild(tr);
@@ -188,10 +157,9 @@
 
   // Recalcula una fila
   function recalcRow(tr){
-    const qty = num(tr.querySelector('.qty').value);
+    const q = num(tr.querySelector('.qty').value);
     const u = num(tr.querySelector('.unit').value);
-    const m2 = num(tr.querySelector('.m2').value);
-    const total = m2 * u * qty;
+    const total = q * u;
     tr.querySelector('.total').textContent = money(total);
   }
 
@@ -214,16 +182,15 @@
       cant: tr.children[1].querySelector('input').value.trim(),
       desc: tr.children[2].querySelector('input').value.trim(),
       unit: tr.children[3].querySelector('input').value.trim(),
-      m2: tr.children[4].querySelector('input').value.trim(),
-      total: tr.children[5].textContent.trim()
+      total: tr.children[4].textContent.trim()
     }));
     const subtotal = document.getElementById('vSubtotal').textContent;
     const igv = document.getElementById('vIgv').textContent;
     const total = document.getElementById('vTotal').textContent;
 
     const meta = {
-      atencion: document.getElementById('att').value.trim(),
-      empresa: document.getElementById('company').value.trim(),
+      cliente: document.getElementById('att').value.trim(),
+      ruc: document.getElementById('company').value.trim(),
       tel1: document.getElementById('tel1').value.trim(),
       tel2: document.getElementById('tel2').value.trim(),
       email: document.getElementById('email').value.trim(),
@@ -277,8 +244,8 @@
     const q = findQuote(id);
     if(!q) return;
     // Limpia y carga la cotización en la UI
-    document.getElementById('att').value = q.meta.atencion || '';
-    document.getElementById('company').value = q.meta.empresa || '';
+    document.getElementById('att').value = q.meta.cliente || '';
+    document.getElementById('company').value = q.meta.ruc || '';
     document.getElementById('tel1').value = q.meta.tel1 || '';
     document.getElementById('tel2').value = q.meta.tel2 || '';
     document.getElementById('email').value = q.meta.email || '';
@@ -305,8 +272,8 @@
     const q = id ? findQuote(id) : null;
 
     const meta = q ? q.meta : {
-      atencion: document.getElementById('att').value.trim(),
-      empresa: document.getElementById('company').value.trim(),
+      cliente: document.getElementById('att').value.trim(),
+      ruc: document.getElementById('company').value.trim(),
       tel1: document.getElementById('tel1').value.trim(),
       tel2: document.getElementById('tel2').value.trim(),
       email: document.getElementById('email').value.trim(),
@@ -316,8 +283,8 @@
     doc.setFontSize(16);
     doc.text('COTIZACIÓN', 40, 40);
     doc.setFontSize(11);
-    doc.text(`Atención: ${meta.atencion || '-'}`, 40, 64);
-    doc.text(`Empresa: ${meta.empresa || '-'}`, 40, 80);
+    doc.text(`Cliente: ${meta.cliente || '-'}`, 40, 64);
+    doc.text(`Ruc: ${meta.ruc || '-'}`, 40, 80);
     doc.text(`Teléfonos: ${[meta.tel1,meta.tel2].filter(Boolean).join(' / ') || '-'}`, 40, 96);
     doc.text(`Email: ${meta.email || '-'}`, 40, 112);
 
@@ -327,19 +294,18 @@
       cant: tr.children[1].querySelector('input').value,
       desc: tr.children[2].querySelector('input').value,
       unit: tr.children[3].querySelector('input').value,
-      m2: tr.children[4].querySelector('input').value,
-      total: tr.children[5].textContent
+      total: tr.children[4].textContent
     })));
 
-    const body = rows.map(r => [r.codigo||'', r.cant||'', r.desc||'', money(num(r.unit)), r.m2||'0.00', r.total||'0.00']);
+    const body = rows.map(r => [r.codigo||'', r.cant||'', r.desc||'', money(num(r.unit)), r.total||'0.00']);
 
     doc.autoTable({
       startY: 140,
-      head: [['CODIGO','CANT.','DESCRIPCION','PRECIO UNIT.','m²','PRECIO TOTAL']],
+      head: [['CODIGO','CANT.','DESCRIPCION','PRECIO UNIT.','PRECIO TOTAL']],
       body,
       styles: { fontSize:10, cellPadding:4 },
       headStyles: { fillColor:[243,244,246], textColor:20 },
-      columnStyles: { 1:{halign:'right'}, 3:{halign:'right'}, 4:{halign:'right'}, 5:{halign:'right'} }
+      columnStyles: { 1:{halign:'right'}, 3:{halign:'right'}, 4:{halign:'right'} }
     });
 
     // Totales
