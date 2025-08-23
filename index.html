@@ -64,7 +64,7 @@
       <div class="form">
         <div class="field"><label>Cliente:</label><input id="att" placeholder="Nombre"></div>
         <div class="field"><label>Celular:</label><input id="tel1" placeholder="7052-8888"></div>
-        <div class="field"><label>Empresa:</label><input id="company" placeholder="Nombre de Empresa"></div>
+        <div class="field"><label>Ruc:</label><input id="company" placeholder="Ingrese RUC"></div>
         <div class="field"><label>Teléfono:</label><input id="tel2" placeholder="2222-2222"></div>
         <div class="field"><label>Email:</label><input id="email" placeholder="info@tuempresa.com"></div>
       </div>
@@ -190,7 +190,7 @@
 
     const meta = {
       cliente: document.getElementById('att').value.trim(),
-      empresa: document.getElementById('company').value.trim(),
+      ruc: document.getElementById('company').value.trim(),
       tel1: document.getElementById('tel1').value.trim(),
       tel2: document.getElementById('tel2').value.trim(),
       email: document.getElementById('email').value.trim(),
@@ -245,7 +245,7 @@
     if(!q) return;
     // Limpia y carga la cotización en la UI
     document.getElementById('att').value = q.meta.cliente || '';
-    document.getElementById('company').value = q.meta.empresa || '';
+    document.getElementById('company').value = q.meta.ruc || '';
     document.getElementById('tel1').value = q.meta.tel1 || '';
     document.getElementById('tel2').value = q.meta.tel2 || '';
     document.getElementById('email').value = q.meta.email || '';
@@ -273,7 +273,7 @@
 
     const meta = q ? q.meta : {
       cliente: document.getElementById('att').value.trim(),
-      empresa: document.getElementById('company').value.trim(),
+      ruc: document.getElementById('company').value.trim(),
       tel1: document.getElementById('tel1').value.trim(),
       tel2: document.getElementById('tel2').value.trim(),
       email: document.getElementById('email').value.trim(),
@@ -284,7 +284,7 @@
     doc.text('COTIZACIÓN', 40, 40);
     doc.setFontSize(11);
     doc.text(`Cliente: ${meta.cliente || '-'}`, 40, 64);
-    doc.text(`Empresa: ${meta.empresa || '-'}`, 40, 80);
+    doc.text(`Ruc: ${meta.ruc || '-'}`, 40, 80);
     doc.text(`Teléfonos: ${[meta.tel1,meta.tel2].filter(Boolean).join(' / ') || '-'}`, 40, 96);
     doc.text(`Email: ${meta.email || '-'}`, 40, 112);
 
