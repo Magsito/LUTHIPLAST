@@ -232,7 +232,7 @@
 
   // Enviar cotización a Google Sheets
   async function saveQuoteToGoogleSheets(quote) {
-    const response = await fetch('https://script.google.com/macros/s/AKfycbyVxhReDnFPzoo2d14rNLjaIIitvYsQMPyHRnPrmehkgWBDje644GjywIF5i6KsZ0LY/exec', {
+    const response = await fetch('https://script.google.com/macros/s/AKfycbyjyNhpJZPoz1AP4o5QFx8G-Npq0o-49CJ-aUk4emI/dev', {
       method: 'POST',
       body: JSON.stringify(quote),
       headers: {
