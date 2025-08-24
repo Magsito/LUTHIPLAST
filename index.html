@@ -442,7 +442,7 @@
     renderLog();
   }
 
-  // ========== GENERACIÓN DE PDF PROFESIONAL ==========
+  // ========== GENERACIÓN DE PDF CON FORMATO PROFESIONAL ==========
   async function downloadPDF(id=null){
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({unit:'pt', format:'a4'});
@@ -457,68 +457,70 @@
       email: document.getElementById('email').value.trim(),
     };
 
-    // ==========  DISEÑO PROFESIONAL  ==========
-    
-    // 1. HEADER CON BARRA SUPERIOR AZUL
-    doc.setFillColor(28, 55, 90); // Azul corporativo
-    doc.rect(0, 0, 595, 80, 'F');
-    
-    // Logo placeholder - puedes agregar tu logo aquí
-    doc.setFillColor(255, 255, 255);
-    doc.rect(40, 20, 120, 40, 'F');
-    doc.setFontSize(10);
-    doc.setTextColor(28, 55, 90);
-    doc.text('LUTHIPLAST', 100, 45, { align: 'center' });
-    
-    // Información de la empresa en el header
-    doc.setFontSize(11);
+    // Colores corporativos
+    const azulOscuro = [12, 20, 52];
+    const azulClaro = [70, 130, 180];
+    const grisClaro = [240, 240, 240];
+
+    // ENCABEZADO CORPORATIVO
+    // Fondo azul del encabezado
+    doc.setFillColor(...azulOscuro);
+    doc.rect(0, 0, 595, 100, 'F');
+
+    // Logo y datos de la empresa (lado izquierdo)
     doc.setTextColor(255, 255, 255);
-    doc.setFont(undefined, 'bold');
-    doc.text('LUTHIPLAST S.A.C.', 180, 35);
-    doc.setFont(undefined, 'normal');
-    doc.setFontSize(9);
-    doc.text('RUC: 20123456789', 180, 48);
-    doc.text('Av. Industrial 123, Lima - Perú', 180, 58);
-    doc.text('Tel: (01) 234-5678 | ventas@luthiplast.com', 180, 68);
-    
-    // COTIZACIÓN - número y fecha
     doc.setFontSize(16);
+    doc.text('IMPORTACIONES', 40, 30);
+    doc.setFontSize(14);
+    doc.text('LUTHIPLAST HRL', 40, 50);
+    
+    doc.setFontSize(8);
+    doc.text('Magdalena del Mar', 40, 70);
+    doc.text('Jr. Castilla 456', 40, 82);
+    doc.text('Sitio Web: www.luthiplast.com', 40, 94);
+
+    // Información de contacto (lado derecho)
+    doc.setFontSize(8);
+    doc.text('Teléfono: 992 753 063', 400, 70);
+    doc.text('E-mail: miguel@luthiplast.com', 400, 82);
+    doc.text('Precio de venta público (Miguel Espinoza Ayala)', 400, 94);
+
+    // TÍTULO COTIZACIÓN
+    doc.setFillColor(...grisClaro);
+    doc.rect(0, 100, 595, 40, 'F');
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(18);
+    doc.text('COTIZACIÓN', 270, 125);
+
+    // Información de fechas y validez (esquina superior derecha)
+    const hoy = new Date();
+    const fechaHoy = hoy.toLocaleDateString('es-PE');
+    const fechaVencimiento = new Date(hoy.getTime() + (30 * 24 * 60 * 60 * 1000)).toLocaleDateString('es-PE');
+
+    doc.setFillColor(...azulClaro);
+    doc.rect(500, 110, 90, 50, 'F');
     doc.setTextColor(255, 255, 255);
-    doc.setFont(undefined, 'bold');
-    doc.text('COTIZACIÓN', 550, 40, { align: 'right' });
-    doc.setFontSize(10);
-    doc.setFont(undefined, 'normal');
-    const cotId = q?.id || `COT-${Date.now()}`;
-    const fecha = new Date().toLocaleDateString('es-PE');
-    doc.text(`N° ${cotId}`, 550, 52, { align: 'right' });
-    doc.text(`Fecha: ${fecha}`, 550, 64, { align: 'right' });
+    doc.setFontSize(8);
+    doc.text('FECHA', 505, 125);
+    doc.text(fechaHoy, 505, 138);
+    doc.text('VÁLIDO HASTA', 505, 151);
+    doc.text(fechaVencimiento, 505, 164);
 
-    // 2. SECCIÓN DE CLIENTE - con fondo gris suave
-    doc.setFillColor(248, 249, 250);
-    doc.rect(40, 100, 515, 80, 'F');
-    
-    // Borde izquierdo azul para la sección
-    doc.setFillColor(28, 55, 90);
-    doc.rect(40, 100, 4, 80, 'F');
-    
-    doc.setFontSize(12);
-    doc.setTextColor(28, 55, 90);
-    doc.setFont(undefined, 'bold');
-    doc.text('INFORMACIÓN DEL CLIENTE', 55, 120);
-    
+    // INFORMACIÓN DEL CLIENTE
+    doc.setFillColor(...azulClaro);
+    doc.rect(40, 160, 450, 25, 'F');
+    doc.setTextColor(255, 255, 255);
     doc.setFontSize(10);
-    doc.setTextColor(60, 60, 60);
-    doc.setFont(undefined, 'normal');
-    
-    // Información del cliente en dos columnas
-    doc.text(`Cliente: ${meta.cliente || 'No especificado'}`, 55, 140);
-    doc.text(`RUC: ${meta.ruc || 'No especificado'}`, 320, 140);
-    doc.text(`Email: ${meta.email || 'No especificado'}`, 55, 155);
-    
-    const telefonos = [meta.tel1, meta.tel2].filter(Boolean).join(' / ') || 'No especificado';
-    doc.text(`Teléfonos: ${telefonos}`, 320, 155);
+    doc.text('CLIENTE:', 45, 178);
+    doc.text(meta.cliente || 'Grupo I&C', 100, 178);
 
-    // 3. TABLA DE PRODUCTOS con diseño profesional
+    // Campo TOTAL (esquina derecha)
+    doc.setFillColor(...azulClaro);
+    doc.rect(500, 160, 90, 25, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.text('TOTAL', 505, 178);
+
+    // TABLA DE PRODUCTOS
     const rows = (q ? q.rows : [...document.querySelectorAll('#body tr')].map(tr => ({
       codigo: tr.children[0].querySelector('input').value,
       cant: tr.children[1].querySelector('input').value,
@@ -529,112 +531,103 @@
     })));
 
     const body = rows.map(r => [
-      r.codigo || '',
-      r.cant || '',
-      r.m2 || '0.00',
-      r.desc || '',
-      `S/ ${money(num(r.unit))}`,
-      `S/ ${r.total || '0.00'}`
+      r.codigo || '', 
+      r.cant || '', 
+      r.desc || '', 
+      'S/ ' + money(num(r.unit)), 
+      '', // SUB-TOTAL (vacío)
+      '', // IMPUESTO (vacío)
+      'S/ ' + (r.total || '0.00')
     ]);
+
+    // Encabezados de la tabla
+    const tableHeaders = [['CODIGO', 'CANT.', 'DESCRIPCIÓN', 'PRECIO', 'SUB-TOTAL', 'IMPUESTO', 'TOTAL']];
 
     doc.autoTable({
       startY: 200,
-      head: [['CÓDIGO', 'CANT.', 'M²', 'DESCRIPCIÓN', 'PRECIO UNIT.', 'PRECIO TOTAL']],
-      body,
-      theme: 'grid',
+      head: tableHeaders,
+      body: body,
       styles: { 
         fontSize: 9, 
         cellPadding: 8,
-        textColor: [60, 60, 60],
-        lineColor: [220, 220, 220],
-        lineWidth: 0.5
+        lineWidth: 0.5,
+        lineColor: [200, 200, 200]
       },
       headStyles: { 
-        fillColor: [28, 55, 90], 
+        fillColor: [...azulClaro], 
         textColor: [255, 255, 255],
         fontStyle: 'bold',
-        fontSize: 9
+        halign: 'center'
       },
-      columnStyles: { 
-        0: { cellWidth: 70 },
-        1: { halign: 'center', cellWidth: 45 },
-        2: { halign: 'center', cellWidth: 45 },
-        3: { cellWidth: 200 },
-        4: { halign: 'right', cellWidth: 90 },
-        5: { halign: 'right', cellWidth: 100, fontStyle: 'bold' }
+      columnStyles: {
+        0: { halign: 'center', cellWidth: 60 },
+        1: { halign: 'center', cellWidth: 50 },
+        2: { halign: 'left', cellWidth: 200 },
+        3: { halign: 'right', cellWidth: 80 },
+        4: { halign: 'right', cellWidth: 80 },
+        5: { halign: 'right', cellWidth: 80 },
+        6: { halign: 'right', cellWidth: 80 }
       },
-      alternateRowStyles: {
-        fillColor: [248, 249, 250]
-      }
+      alternateRowStyles: { fillColor: [250, 250, 250] }
     });
 
-    // 4. TOTALES con diseño elegante
-    const finalY = doc.lastAutoTable.finalY + 20;
-    
-    // Caja para totales
-    doc.setFillColor(248, 249, 250);
-    doc.rect(350, finalY, 205, 90, 'F');
-    doc.setDrawColor(220, 220, 220);
-    doc.rect(350, finalY, 205, 90, 'S');
-
+    // TOTALES (parte inferior derecha)
+    const tableEndY = doc.lastAutoTable.finalY;
     const subtotal = q ? q.subtotal : document.getElementById('vSubtotal').textContent;
     const igv = q ? q.igv : document.getElementById('vIgv').textContent;
     const total = q ? q.total : document.getElementById('vTotal').textContent;
 
+    // Fondo para totales
+    doc.setFillColor(...grisClaro);
+    doc.rect(400, tableEndY + 10, 150, 80, 'F');
+
+    doc.setTextColor(0, 0, 0);
     doc.setFontSize(10);
-    doc.setTextColor(60, 60, 60);
-    
-    // Subtotal
-    doc.text('Subtotal:', 365, finalY + 20);
-    doc.text(`S/ ${subtotal}`, 540, finalY + 20, { align: 'right' });
-    
-    // IGV
-    doc.text('IGV (18%):', 365, finalY + 38);
-    doc.text(`S/ ${igv}`, 540, finalY + 38, { align: 'right' });
-    
-    // Línea separadora
-    doc.setDrawColor(28, 55, 90);
-    doc.setLineWidth(1);
-    doc.line(365, finalY + 50, 540, finalY + 50);
-    
-    // Total
-    doc.setFontSize(14);
-    doc.setFont(undefined, 'bold');
-    doc.setTextColor(28, 55, 90);
-    doc.text('TOTAL:', 365, finalY + 70);
-    doc.text(`S/ ${total}`, 540, finalY + 70, { align: 'right' });
+    doc.text('SUBTOTAL:', 410, tableEndY + 30);
+    doc.text('IGV:', 410, tableEndY + 50);
+    doc.text('TOTAL:', 410, tableEndY + 70);
 
-    // 5. PIE DE PÁGINA con información adicional
-    const pageHeight = doc.internal.pageSize.height;
-    
-    // Línea separadora superior
-    doc.setDrawColor(220, 220, 220);
-    doc.setLineWidth(0.5);
-    doc.line(40, pageHeight - 80, 555, pageHeight - 80);
-    
-    doc.setFontSize(9);
-    doc.setTextColor(120, 120, 120);
-    doc.setFont(undefined, 'normal');
-    
-    // Información del pie de página
-    doc.text('• Cotización válida por 30 días', 40, pageHeight - 65);
-    doc.text('• Precios incluyen IGV', 40, pageHeight - 52);
-    doc.text('• Tiempo de entrega: 7-10 días hábiles', 40, pageHeight - 39);
-    
-    // Información de contacto en el pie
-    doc.text('Para consultas: ventas@luthiplast.com | Tel: (01) 234-5678', 300, pageHeight - 65);
-    doc.text('Síguenos en nuestras redes sociales', 300, pageHeight - 52);
-    
-    // Número de página
-    doc.setFontSize(8);
-    doc.text('Página 1 de 1', 555, pageHeight - 25, { align: 'right' });
-    
-    // Marca de agua sutil (opcional)
-    doc.setFontSize(8);
-    doc.setTextColor(200, 200, 200);
-    doc.text('Generado automáticamente por Sistema Luthiplast', 40, pageHeight - 25);
+    doc.setFontSize(10);
+    doc.text(`S/`, 500, tableEndY + 30);
+    doc.text(`S/`, 500, tableEndY + 50);
+    doc.text(`S/`, 500, tableEndY + 70);
 
-    // Guardar el PDF
+    doc.text(subtotal, 520, tableEndY + 30);
+    doc.text(igv, 520, tableEndY + 50);
+    doc.text(total, 520, tableEndY + 70);
+
+    // TÉRMINOS Y CONDICIONES
+    const termsY = tableEndY + 120;
+    doc.setFillColor(255, 255, 255);
+    doc.rect(40, termsY, 510, 120, 'F');
+    doc.setDrawColor(200, 200, 200);
+    doc.rect(40, termsY, 510, 120, 'S');
+
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(10);
+    doc.text('TÉRMINOS Y CONDICIONES', 45, termsY + 20);
+
+    doc.setFontSize(8);
+    const terminos = [
+      '• Precios incluidos el IGV.',
+      '• 40% de adelanto.',
+      '• 60% a la entrega.',
+      '• Abonar en la Cta. Cte. No. 191-2460527-0-98  CCI: 002191002460527098838 Banco de',
+      '  la Nación cuenta en Nuevos Soles (Titular el)',
+      '• Nombre del cliente:',
+      '',
+      '• Si usted tiene alguna pregunta sobre esta cotización, por favor póngase en contacto con nosotros',
+      '    IMPORTACIONES LUTHIPLAST BRL | Teléfono: 992 753 063 | E-mail: miguel@luthiplast.com',
+      '',
+      '                                          ¡Gracias por hacer negocios con nosotros!'
+    ];
+
+    let lineY = termsY + 40;
+    terminos.forEach(linea => {
+      doc.text(linea, 50, lineY);
+      lineY += 12;
+    });
+
     doc.save((q?.id || 'cotizacion') + '.pdf');
   }
 
