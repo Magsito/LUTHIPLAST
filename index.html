@@ -546,8 +546,8 @@
       head: tableHeaders,
       body: body,
       styles: { 
-        fontSize: 10, 
-        cellPadding: 8,
+        fontSize: 9, 
+        cellPadding: 6,
         lineWidth: 0.5,
         lineColor: [200, 200, 200],
         textColor: [0, 0, 0]
@@ -556,18 +556,20 @@
         fillColor: [...azulClaro], 
         textColor: [255, 255, 255],
         fontStyle: 'bold',
-        halign: 'center'
+        halign: 'center',
+        fontSize: 9
       },
       columnStyles: {
-        0: { halign: 'center', cellWidth: 80 },  // CÓDIGO
-        1: { halign: 'center', cellWidth: 60 },  // CANT.
-        2: { halign: 'center', cellWidth: 50 },  // m²
-        3: { halign: 'left', cellWidth: 220 },   // DESCRIPCIÓN
-        4: { halign: 'right', cellWidth: 90 },   // PRECIO UNIT.
-        5: { halign: 'right', cellWidth: 95 }    // TOTAL
+        0: { halign: 'center', cellWidth: 70 },  // CÓDIGO
+        1: { halign: 'center', cellWidth: 50 },  // CANT.
+        2: { halign: 'center', cellWidth: 45 },  // m²
+        3: { halign: 'left', cellWidth: 200 },   // DESCRIPCIÓN
+        4: { halign: 'right', cellWidth: 85 },   // PRECIO UNIT.
+        5: { halign: 'right', cellWidth: 85 }    // TOTAL
       },
       alternateRowStyles: { fillColor: [250, 250, 250] },
-      margin: { left: 40, right: 40 }
+      margin: { left: 40, right: 40 },
+      tableWidth: 'wrap'
     });
 
     // TOTALES (parte inferior derecha)
@@ -578,24 +580,32 @@
 
     // Fondo para totales
     doc.setFillColor(...grisClaro);
-    doc.rect(380, tableEndY, 175, 80, 'F');
+    doc.rect(350, tableEndY, 205, 75, 'F');
     doc.setDrawColor(200, 200, 200);
-    doc.rect(380, tableEndY, 175, 80, 'S');
+    doc.rect(350, tableEndY, 205, 75, 'S');
+
+    // Líneas divisorias internas
+    doc.line(350, tableEndY + 25, 555, tableEndY + 25);
+    doc.line(350, tableEndY + 50, 555, tableEndY + 50);
+    doc.line(480, tableEndY, 480, tableEndY + 75);
 
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(11);
     doc.setFont('helvetica', 'normal');
-    doc.text('SUBTOTAL:', 390, tableEndY + 20);
-    doc.text('IGV (18%):', 390, tableEndY + 40);
+    
+    // Etiquetas (centradas en la columna izquierda)
+    doc.text('SUBTOTAL:', 415, tableEndY + 17, { align: 'center' });
+    doc.text('IGV (18%):', 415, tableEndY + 42, { align: 'center' });
     doc.setFont('helvetica', 'bold');
-    doc.text('TOTAL:', 390, tableEndY + 65);
+    doc.text('TOTAL:', 415, tableEndY + 67, { align: 'center' });
 
+    // Valores (centrados en la columna derecha)
     doc.setFont('helvetica', 'normal');
-    doc.text(`S/ ${subtotal}`, 510, tableEndY + 20);
-    doc.text(`S/ ${igv}`, 510, tableEndY + 40);
+    doc.text(`S/ ${subtotal}`, 517, tableEndY + 17, { align: 'center' });
+    doc.text(`S/ ${igv}`, 517, tableEndY + 42, { align: 'center' });
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(12);
-    doc.text(`S/ ${total}`, 510, tableEndY + 65);
+    doc.text(`S/ ${total}`, 517, tableEndY + 67, { align: 'center' });
 
     // TÉRMINOS Y CONDICIONES
     const termsY = tableEndY + 120;
