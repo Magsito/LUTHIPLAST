@@ -9,6 +9,29 @@
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
+  <!-- Firebase SDK -->
+  <script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAPrdd1y1qS_f_jkDPeW6o7jThY6nM8s3k",
+      authDomain: "luthiplast-73154.firebaseapp.com",
+      databaseURL: "https://luthiplast-73154-default-rtdb.firebaseio.com",
+      projectId: "luthiplast-73154",
+      storageBucket: "luthiplast-73154.firebasestorage.app",
+      messagingSenderId: "786164516277",
+      appId: "1:786164516277:web:7a08c029357ad1007085fc",
+      measurementId: "G-E5C3ESQHXP"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+  </script>
+
   <style>
     :root{
       --bg: #0c1434; /* Fondo oscuro */
@@ -191,7 +214,7 @@
     document.getElementById('vTotal').textContent = money(total);
   }
 
-  // Guardar cotización (total general, no los totales por ítem)
+  // Guardar cotización en Firebase
   function saveQuote(){
     const rows = [...document.querySelectorAll('#body tr')].map(tr => ({
       codigo: tr.children[0].querySelector('input').value.trim(),
@@ -213,15 +236,15 @@
       email: document.getElementById('email').value.trim(),
     };
 
+    // Guarda en Firebase
     const quote = {
       id: 'COT-' + Date.now(),
       fecha: new Date().toLocaleString(),
       meta, rows, subtotal, igv, total
     };
 
-    const list = JSON.parse(localStorage.getItem('quotes') || '[]');
-    list.unshift(quote);
-    localStorage.setItem('quotes', JSON.stringify(list));
+    const db = getDatabase();
+    set(ref(db, 'cotizaciones/' + quote.id), quote);
 
     document.getElementById('savedHint').textContent = `Guardado ✓ Total S/ ${total}`;
     renderLog();
@@ -252,106 +275,8 @@
     });
   }
 
-  function findQuote(id){
-    const list = JSON.parse(localStorage.getItem('quotes') || '[]');
-    return list.find(q => q.id === id);
-  }
-
-  function showQuote(id){
-    const q = findQuote(id);
-    if(!q) return;
-    // Limpia y carga la cotización en la UI
-    document.getElementById('att').value = q.meta.cliente || '';
-    document.getElementById('company').value = q.meta.ruc || '';
-    document.getElementById('tel1').value = q.meta.tel1 || '';
-    document.getElementById('tel2').value = q.meta.tel2 || '';
-    document.getElementById('email').value = q.meta.email || '';
-
-    document.getElementById('body').innerHTML = '';
-    q.rows.forEach(r => addRow(r));
-    // Poner totales exactos guardados
-    document.getElementById('vSubtotal').textContent = q.subtotal;
-    document.getElementById('vIgv').textContent = q.igv;
-    document.getElementById('vTotal').textContent = q.total;
-  }
-
-  function deleteQuote(id){
-    const list = JSON.parse(localStorage.getItem('quotes') || '[]').filter(q => q.id !== id);
-    localStorage.setItem('quotes', JSON.stringify(list));
-    renderLog();
-  }
-
-  // PDF (de la UI actual o de una guardada)
-  async function downloadPDF(id=null){
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({unit:'pt', format:'a4'});
-
-    const q = id ? findQuote(id) : null;
-
-    const meta = q ? q.meta : {
-      cliente: document.getElementById('att').value.trim(),
-      ruc: document.getElementById('company').value.trim(),
-      tel1: document.getElementById('tel1').value.trim(),
-      tel2: document.getElementById('tel2').value.trim(),
-      email: document.getElementById('email').value.trim(),
-    };
-
-    // Encabezado
-    doc.setFontSize(16);
-    doc.text('COTIZACIÓN', 40, 40);
-    doc.setFontSize(11);
-    doc.text(`Cliente: ${meta.cliente || '-'}`, 40, 64);
-    doc.text(`Ruc: ${meta.ruc || '-'}`, 40, 80);
-    doc.text(`Teléfonos: ${[meta.tel1,meta.tel2].filter(Boolean).join(' / ') || '-'}`, 40, 96);
-    doc.text(`Email: ${meta.email || '-'}`, 40, 112);
-
-    // Tabla
-    const rows = (q ? q.rows : [...document.querySelectorAll('#body tr')].map(tr => ({
-      codigo: tr.children[0].querySelector('input').value,
-      cant: tr.children[1].querySelector('input').value,
-      desc: tr.children[2].querySelector('input').value,
-      unit: tr.children[3].querySelector('input').value,
-      m2: tr.children[4].querySelector('input').value,
-      total: tr.children[5].textContent
-    })));
-
-    const body = rows.map(r => [r.codigo||'', r.cant||'', r.desc||'', money(num(r.unit)), r.m2||'0.00', r.total||'0.00']);
-
-    doc.autoTable({
-      startY: 140,
-      head: [['CODIGO','CANT.','DESCRIPCION','PRECIO UNIT.','m²','PRECIO TOTAL']],
-      body,
-      styles: { fontSize:10, cellPadding:4 },
-      headStyles: { fillColor:[243,244,246], textColor:20 },
-      columnStyles: { 1:{halign:'right'}, 3:{halign:'right'}, 4:{halign:'right'}, 5:{halign:'right'} }
-    });
-
-    // Totales
-    const y = doc.lastAutoTable.finalY + 12;
-    const subtotal = q ? q.subtotal : document.getElementById('vSubtotal').textContent;
-    const igv      = q ? q.igv      : document.getElementById('vIgv').textContent;
-    const total    = q ? q.total    : document.getElementById('vTotal').textContent;
-
-    doc.setFontSize(11);
-    doc.text(`SUBTOTAL: S/ ${subtotal}`, 400, y);
-    doc.text(`IGV 18%: S/ ${igv}`, 400, y+16);
-    doc.setFontSize(12);
-    doc.text(`TOTAL: S/ ${total}`, 400, y+36);
-
-    doc.save((q?.id || 'cotizacion') + '.pdf');
-  }
-
-  // Imprimir
-  function printPage(){ window.print(); }
-
-  // Eventos UI
-  document.getElementById('btnAdd').addEventListener('click', () => addRow());
-  document.getElementById('btnPdf').addEventListener('click', () => downloadPDF());
-  document.getElementById('btnPrint').addEventListener('click', printPage);
+  // Llamar a la función de guardar cotización
   document.getElementById('btnSave').addEventListener('click', saveQuote);
-
-  // Cargar cotizaciones guardadas al recargar la página
-  window.onload = renderLog;
 </script>
 </body>
 </html>
