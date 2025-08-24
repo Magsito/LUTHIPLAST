@@ -143,7 +143,7 @@
   function addRow(data={}) {
     const tr = document.createElement('tr');
 
-    tr.innerHTML = `
+    tr.innerHTML = `  
       <td><input class="cell" placeholder="MG01" value="${data.codigo||''}"></td>
       <td><input class="cell center qty" type="number" min="0" step="1" placeholder="1" value="${data.cant||''}"></td>
       <td><input class="cell center m2" type="number" min="0" step="0.01" placeholder="0.00" value="${data.m2||''}"></td>
@@ -225,6 +225,23 @@
 
     document.getElementById('savedHint').textContent = `Guardado ✓ Total S/ ${total}`;
     renderLog();
+
+    // Llamada para guardar en Google Sheets
+    saveQuoteToGoogleSheets(quote);
+  }
+
+  // Enviar cotización a Google Sheets
+  async function saveQuoteToGoogleSheets(quote) {
+    const response = await fetch('https://script.google.com/macros/s/TU_SCRIPT_URL/exec', {
+      method: 'POST',
+      body: JSON.stringify(quote),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    const data = await response.text();
+    console.log(data); // El servidor de Google Apps Script debe devolver "Guardado con éxito"
+    alert('Cotización guardada con éxito en Google Sheets.');
   }
 
   // Render de registro
@@ -247,7 +264,7 @@
           <button class="btn" title="Mostrar" onclick='showQuote("${q.id}")'>Mostrar</button>
           <button class="btn" title="Descargar PDF" onclick='downloadPDF("${q.id}")'>PDF</button>
           <button class="btn" title="Borrar" onclick='deleteQuote("${q.id}")'>Borrar</button>
-        </div>`;
+        </div>`; 
       ul.appendChild(li);
     });
   }
