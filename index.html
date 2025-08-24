@@ -9,6 +9,9 @@
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
   <style>
     :root{
       --bg: #0c1434; /* Fondo oscuro */
@@ -135,25 +138,30 @@
   </div>
 
 <script>
+  // Configuración de Supabase
+  const supabaseUrl = 'https://luthiplast-73154.supabase.co';  // Usa tu URL de Supabase
+  const supabaseKey = 'tu-clave-publica';  // Usa tu clave pública de Supabase
+  const supabase = createClient(supabaseUrl, supabaseKey);
+
   // Utilidades de formato
-  const money = n => (isNaN(n)?0:n).toFixed(2);
+  const money = n => (isNaN(n) ? 0 : n).toFixed(2);
   const num = v => parseFloat(String(v).replace(',', '.')) || 0;
 
   // Agregar fila
-  function addRow(data={}) {
+  function addRow(data = {}) {
     const tr = document.createElement('tr');
 
     tr.innerHTML = `
-      <td><input class="cell" placeholder="MG01" value="${data.codigo||''}"></td>
-      <td><input class="cell center qty" type="number" min="0" step="1" placeholder="1" value="${data.cant||''}"></td>
-      <td><input class="cell center m2" type="number" min="0" step="0.01" placeholder="0.00" value="${data.m2||''}"></td>
-      <td><input class="cell" placeholder="Descripción del producto" value="${data.desc||''}"></td>
-      <td class="num"><input class="cell right unit" type="number" min="0" step="0.01" placeholder="0.00" value="${data.unit||''}"></td>
+      <td><input class="cell" placeholder="MG01" value="${data.codigo || ''}"></td>
+      <td><input class="cell center qty" type="number" min="0" step="1" placeholder="1" value="${data.cant || ''}"></td>
+      <td><input class="cell center m2" type="number" min="0" step="0.01" placeholder="0.00" value="${data.m2 || ''}"></td>
+      <td><input class="cell" placeholder="Descripción del producto" value="${data.desc || ''}"></td>
+      <td class="num"><input class="cell right unit" type="number" min="0" step="0.01" placeholder="0.00" value="${data.unit || ''}"></td>
       <td class="num total">0.00</td>
       <td class="actions"><button class="btn" title="Eliminar">🗑️</button></td>
     `;
 
-    // eventos
+    // Eventos
     const qty = tr.querySelector('.qty');
     const m2 = tr.querySelector('.m2');
     const unit = tr.querySelector('.unit');
@@ -168,19 +176,19 @@
   }
 
   // Recalcula una fila
-  function recalcRow(tr){
+  function recalcRow(tr) {
     const qty = num(tr.querySelector('.qty').value);
     const u = num(tr.querySelector('.unit').value);
     const m2 = num(tr.querySelector('.m2').value);
-    
+
     // Condicional: si m² está vacío, se calcula como precio unitario por cantidad
     const total = m2 ? (m2 * u * qty) : (u * qty);
-    
+
     tr.querySelector('.total').textContent = money(total);
   }
 
   // Recalcula toda la tabla
-  function recalcAll(){
+  function recalcAll() {
     document.querySelectorAll('#body tr').forEach(recalcRow);
     let subtotal = 0;
     document.querySelectorAll('#body tr .total').forEach(td => subtotal += num(td.textContent));
@@ -191,8 +199,8 @@
     document.getElementById('vTotal').textContent = money(total);
   }
 
-  // Guardar cotización (total general, no los totales por ítem)
-  function saveQuote(){
+  // Guardar cotización en Supabase
+  async function saveQuote() {
     const rows = [...document.querySelectorAll('#body tr')].map(tr => ({
       codigo: tr.children[0].querySelector('input').value.trim(),
       cant: tr.children[1].querySelector('input').value.trim(),
@@ -213,26 +221,37 @@
       email: document.getElementById('email').value.trim(),
     };
 
-    const quote = {
-      id: 'COT-' + Date.now(),
-      fecha: new Date().toLocaleString(),
-      meta, rows, subtotal, igv, total
-    };
+    // Guardar cotización en la base de datos de Supabase
+    const { data, error } = await supabase
+      .from('cotizaciones')  // Nombre de tu tabla en Supabase
+      .insert([
+        {
+          cliente: meta.cliente,
+          ruc: meta.ruc,
+          tel1: meta.tel1,
+          tel2: meta.tel2,
+          email: meta.email,
+          rows: rows,  // Almacena los productos como un JSON
+          subtotal: subtotal,
+          igv: igv,
+          total: total
+        }
+      ]);
 
-    const list = JSON.parse(localStorage.getItem('quotes') || '[]');
-    list.unshift(quote);
-    localStorage.setItem('quotes', JSON.stringify(list));
-
-    document.getElementById('savedHint').textContent = `Guardado ✓ Total S/ ${total}`;
-    renderLog();
+    if (error) {
+      console.error("Error al guardar la cotización:", error);
+    } else {
+      document.getElementById('savedHint').textContent = `Guardado ✓ Total S/ ${total}`;
+      renderLog();
+    }
   }
 
   // Render de registro
-  function renderLog(){
+  function renderLog() {
     const list = JSON.parse(localStorage.getItem('quotes') || '[]');
     const ul = document.getElementById('logList');
     ul.innerHTML = '';
-    if(!list.length){
+    if (!list.length) {
       ul.innerHTML = '<li class="ghost">Aún no hay cotizaciones guardadas.</li>';
       return;
     }
@@ -252,14 +271,14 @@
     });
   }
 
-  function findQuote(id){
+  function findQuote(id) {
     const list = JSON.parse(localStorage.getItem('quotes') || '[]');
     return list.find(q => q.id === id);
   }
 
-  function showQuote(id){
+  function showQuote(id) {
     const q = findQuote(id);
-    if(!q) return;
+    if (!q) return;
     // Limpia y carga la cotización en la UI
     document.getElementById('att').value = q.meta.cliente || '';
     document.getElementById('company').value = q.meta.ruc || '';
@@ -275,16 +294,16 @@
     document.getElementById('vTotal').textContent = q.total;
   }
 
-  function deleteQuote(id){
+  function deleteQuote(id) {
     const list = JSON.parse(localStorage.getItem('quotes') || '[]').filter(q => q.id !== id);
     localStorage.setItem('quotes', JSON.stringify(list));
     renderLog();
   }
 
   // PDF (de la UI actual o de una guardada)
-  async function downloadPDF(id=null){
+  async function downloadPDF(id = null) {
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({unit:'pt', format:'a4'});
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
 
     const q = id ? findQuote(id) : null;
 
@@ -302,7 +321,7 @@
     doc.setFontSize(11);
     doc.text(`Cliente: ${meta.cliente || '-'}`, 40, 64);
     doc.text(`Ruc: ${meta.ruc || '-'}`, 40, 80);
-    doc.text(`Teléfonos: ${[meta.tel1,meta.tel2].filter(Boolean).join(' / ') || '-'}`, 40, 96);
+    doc.text(`Teléfonos: ${[meta.tel1, meta.tel2].filter(Boolean).join(' / ') || '-'}`, 40, 96);
     doc.text(`Email: ${meta.email || '-'}`, 40, 112);
 
     // Tabla
@@ -315,34 +334,34 @@
       total: tr.children[5].textContent
     })));
 
-    const body = rows.map(r => [r.codigo||'', r.cant||'', r.desc||'', money(num(r.unit)), r.m2||'0.00', r.total||'0.00']);
+    const body = rows.map(r => [r.codigo || '', r.cant || '', r.desc || '', money(num(r.unit)), r.m2 || '0.00', r.total || '0.00']);
 
     doc.autoTable({
       startY: 140,
-      head: [['CODIGO','CANT.','DESCRIPCION','PRECIO UNIT.','m²','PRECIO TOTAL']],
+      head: [['CODIGO', 'CANT.', 'DESCRIPCION', 'PRECIO UNIT.', 'm²', 'PRECIO TOTAL']],
       body,
-      styles: { fontSize:10, cellPadding:4 },
-      headStyles: { fillColor:[243,244,246], textColor:20 },
-      columnStyles: { 1:{halign:'right'}, 3:{halign:'right'}, 4:{halign:'right'}, 5:{halign:'right'} }
+      styles: { fontSize: 10, cellPadding: 4 },
+      headStyles: { fillColor: [243, 244, 246], textColor: 20 },
+      columnStyles: { 1: { halign: 'right' }, 3: { halign: 'right' }, 4: { halign: 'right' }, 5: { halign: 'right' } }
     });
 
     // Totales
     const y = doc.lastAutoTable.finalY + 12;
     const subtotal = q ? q.subtotal : document.getElementById('vSubtotal').textContent;
-    const igv      = q ? q.igv      : document.getElementById('vIgv').textContent;
-    const total    = q ? q.total    : document.getElementById('vTotal').textContent;
+    const igv = q ? q.igv : document.getElementById('vIgv').textContent;
+    const total = q ? q.total : document.getElementById('vTotal').textContent;
 
     doc.setFontSize(11);
     doc.text(`SUBTOTAL: S/ ${subtotal}`, 400, y);
-    doc.text(`IGV 18%: S/ ${igv}`, 400, y+16);
+    doc.text(`IGV 18%: S/ ${igv}`, 400, y + 16);
     doc.setFontSize(12);
-    doc.text(`TOTAL: S/ ${total}`, 400, y+36);
+    doc.text(`TOTAL: S/ ${total}`, 400, y + 36);
 
     doc.save((q?.id || 'cotizacion') + '.pdf');
   }
 
   // Imprimir
-  function printPage(){ window.print(); }
+  function printPage() { window.print(); }
 
   // Eventos UI
   document.getElementById('btnAdd').addEventListener('click', () => addRow());
