@@ -54,6 +54,28 @@
     .log small{color:var(--muted)}
     .log .rowbtns{display:flex; gap:8px}
     .ghost{color:var(--muted); font-style:italic}
+
+    /* Estilos para indicadores de estado */
+    .sync-indicator {
+      display: inline-block;
+      margin-left: 8px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    .sync-indicator.syncing {
+      background-color: #fbbf24;
+      color: #92400e;
+    }
+    .sync-indicator.success {
+      background-color: #10b981;
+      color: #065f46;
+    }
+    .sync-indicator.error {
+      background-color: #ef4444;
+      color: #991b1b;
+    }
   </style>
 </head>
 <body>
@@ -135,11 +157,36 @@
   </div>
 
 <script>
-  // Utilidades de formato
+  // ========== CONFIGURACIÓN GOOGLE SHEETS ==========
+  // IMPORTANTE: Reemplaza esta URL con la de tu Google Apps Script
+  const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyVxhReDnFPzoo2d14rNLjaIIitvYsQMPyHRnPrmehkgWBDje644GjywIF5i6KsZ0LY/exec';
+  
+  // ========== UTILIDADES ==========
   const money = n => (isNaN(n)?0:n).toFixed(2);
   const num = v => parseFloat(String(v).replace(',', '.')) || 0;
 
-  // Agregar fila
+  // ========== FUNCIÓN PARA ENVIAR DATOS A GOOGLE SHEETS ==========
+  async function sendToGoogleSheets(quote) {
+    try {
+      const response = await fetch(GOOGLE_SHEETS_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(quote),
+        mode: 'no-cors' // Necesario para Google Apps Script
+      });
+      
+      // Con mode: 'no-cors', no podemos leer la respuesta, 
+      // pero si no hay error en el fetch, asumimos éxito
+      return true;
+    } catch (error) {
+      console.error('Error enviando a Google Sheets:', error);
+      return false;
+    }
+  }
+
+  // ========== FUNCIÓN PARA AGREGAR FILAS ==========
   function addRow(data={}) {
     const tr = document.createElement('tr');
 
@@ -167,7 +214,7 @@
     recalcAll();
   }
 
-  // Recalcula una fila
+  // ========== RECÁLCULOS ==========
   function recalcRow(tr){
     const qty = num(tr.querySelector('.qty').value);
     const u = num(tr.querySelector('.unit').value);
@@ -179,7 +226,6 @@
     tr.querySelector('.total').textContent = money(total);
   }
 
-  // Recalcula toda la tabla
   function recalcAll(){
     document.querySelectorAll('#body tr').forEach(recalcRow);
     let subtotal = 0;
@@ -191,9 +237,17 @@
     document.getElementById('vTotal').textContent = money(total);
   }
 
-  // Guardar cotización (total general, no los totales por ítem)
-  function saveQuote(){
-    const rows = [...document.querySelectorAll('#body tr')].map(tr => ({
+  // ========== GUARDAR COTIZACIÓN (MODIFICADA PARA GOOGLE SHEETS) ==========
+  async function saveQuote(){
+    // Validar que hay al menos un producto
+    const rows = [...document.querySelectorAll('#body tr')];
+    if (rows.length === 0) {
+      alert('Debe agregar al menos un producto para guardar la cotización');
+      return;
+    }
+
+    // Crear objeto de datos
+    const rowsData = rows.map(tr => ({
       codigo: tr.children[0].querySelector('input').value.trim(),
       cant: tr.children[1].querySelector('input').value.trim(),
       m2: tr.children[2].querySelector('input').value.trim(),
@@ -201,6 +255,7 @@
       unit: tr.children[4].querySelector('input').value.trim(),
       total: tr.children[5].textContent.trim()
     }));
+    
     const subtotal = document.getElementById('vSubtotal').textContent;
     const igv = document.getElementById('vIgv').textContent;
     const total = document.getElementById('vTotal').textContent;
@@ -216,18 +271,45 @@
     const quote = {
       id: 'COT-' + Date.now(),
       fecha: new Date().toLocaleString(),
-      meta, rows, subtotal, igv, total
+      meta, 
+      rows: rowsData, 
+      subtotal, 
+      igv, 
+      total
     };
 
+    // Guardar localmente (como antes)
     const list = JSON.parse(localStorage.getItem('quotes') || '[]');
     list.unshift(quote);
     localStorage.setItem('quotes', JSON.stringify(list));
 
-    document.getElementById('savedHint').textContent = `Guardado ✓ Total S/ ${total}`;
+    // Mostrar estado de guardado
+    const savedHint = document.getElementById('savedHint');
+    savedHint.innerHTML = `Guardando... <span class="sync-indicator syncing">⏳</span>`;
+    
+    try {
+      // Enviar a Google Sheets
+      const googleSheetsSuccess = await sendToGoogleSheets(quote);
+      
+      if (googleSheetsSuccess) {
+        savedHint.innerHTML = `Guardado ✓ Total S/ ${total} <span class="sync-indicator success">☁️ Sincronizado</span>`;
+      } else {
+        savedHint.innerHTML = `Guardado ✓ Total S/ ${total} <span class="sync-indicator error">⚠️ Solo local</span>`;
+      }
+    } catch (error) {
+      console.error('Error en sincronización:', error);
+      savedHint.innerHTML = `Guardado ✓ Total S/ ${total} <span class="sync-indicator error">⚠️ Error sync</span>`;
+    }
+    
     renderLog();
+
+    // Limpiar mensaje después de 5 segundos
+    setTimeout(() => {
+      savedHint.textContent = '';
+    }, 5000);
   }
 
-  // Render de registro
+  // ========== RENDER DE REGISTRO ==========
   function renderLog(){
     const list = JSON.parse(localStorage.getItem('quotes') || '[]');
     const ul = document.getElementById('logList');
@@ -252,6 +334,7 @@
     });
   }
 
+  // ========== FUNCIONES DE COTIZACIÓN ==========
   function findQuote(id){
     const list = JSON.parse(localStorage.getItem('quotes') || '[]');
     return list.find(q => q.id === id);
@@ -276,12 +359,13 @@
   }
 
   function deleteQuote(id){
+    if(!confirm('¿Está seguro de que desea borrar esta cotización?')) return;
     const list = JSON.parse(localStorage.getItem('quotes') || '[]').filter(q => q.id !== id);
     localStorage.setItem('quotes', JSON.stringify(list));
     renderLog();
   }
 
-  // PDF (de la UI actual o de una guardada)
+  // ========== GENERACIÓN DE PDF ==========
   async function downloadPDF(id=null){
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({unit:'pt', format:'a4'});
@@ -309,9 +393,9 @@
     const rows = (q ? q.rows : [...document.querySelectorAll('#body tr')].map(tr => ({
       codigo: tr.children[0].querySelector('input').value,
       cant: tr.children[1].querySelector('input').value,
-      desc: tr.children[2].querySelector('input').value,
-      unit: tr.children[3].querySelector('input').value,
-      m2: tr.children[4].querySelector('input').value,
+      desc: tr.children[3].querySelector('input').value,
+      unit: tr.children[4].querySelector('input').value,
+      m2: tr.children[2].querySelector('input').value,
       total: tr.children[5].textContent
     })));
 
@@ -341,17 +425,25 @@
     doc.save((q?.id || 'cotizacion') + '.pdf');
   }
 
-  // Imprimir
-  function printPage(){ window.print(); }
+  // ========== FUNCIÓN DE IMPRESIÓN ==========
+  function printPage(){ 
+    window.print(); 
+  }
 
-  // Eventos UI
+  // ========== EVENTOS DE LA UI ==========
   document.getElementById('btnAdd').addEventListener('click', () => addRow());
   document.getElementById('btnPdf').addEventListener('click', () => downloadPDF());
   document.getElementById('btnPrint').addEventListener('click', printPage);
   document.getElementById('btnSave').addEventListener('click', saveQuote);
 
-  // Cargar cotizaciones guardadas al recargar la página
-  window.onload = renderLog;
+  // ========== INICIALIZACIÓN ==========
+  window.onload = function() {
+    renderLog();
+    // Verificar configuración de Google Sheets
+    if (GOOGLE_SHEETS_URL.includes('TU_URL_DE_GOOGLE_APPS_SCRIPT_AQUI')) {
+      console.warn('⚠️ Recuerda configurar la URL de Google Apps Script en la variable GOOGLE_SHEETS_URL');
+    }
+  };
 </script>
 </body>
 </html>
