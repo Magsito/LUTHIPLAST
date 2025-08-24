@@ -159,7 +159,17 @@
 <script>
   // ========== CONFIGURACIÓN GOOGLE SHEETS ==========
   // IMPORTANTE: Reemplaza esta URL con la de tu Google Apps Script
-  const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyVxhReDnFPzoo2d14rNLjaIIitvYsQMPyHRnPrmehkgWBDje644GjywIF5i6KsZ0LY/exec';
+  const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwN3pM7FaIEPQ_qtK6enyC6jBd1yCrIYqyp5jFMPuWRkPLBQW2t1JLNAPiP7ggAIm8A/exec';
+  
+  // Variable para debugging
+  let debugMode = true;
+  
+  function log(message, data = null) {
+    if (debugMode) {
+      console.log('🔍 COTIZADOR:', message);
+      if (data) console.log(data);
+    }
+  }
   
   // ========== UTILIDADES ==========
   const money = n => (isNaN(n)?0:n).toFixed(2);
@@ -167,21 +177,88 @@
 
   // ========== FUNCIÓN PARA ENVIAR DATOS A GOOGLE SHEETS ==========
   async function sendToGoogleSheets(quote) {
+    log('=== INICIANDO ENVÍO A GOOGLE SHEETS ===');
+    log('Datos a enviar:', quote);
+    log('URL configurada:', GOOGLE_SHEETS_URL);
+    
+    // Verificar URL configurada
+    if (GOOGLE_SHEETS_URL.includes('TU_URL_DE_GOOGLE_APPS_SCRIPT_AQUI')) {
+      log('❌ ERROR: URL de Google Apps Script NO está configurada');
+      alert('⚠️ Error: Debes configurar la URL de Google Apps Script en el código.\n\nBusca la línea:\nconst GOOGLE_SHEETS_URL = ...\n\ny reemplaza TU_URL_DE_GOOGLE_APPS_SCRIPT_AQUI con tu URL real.');
+      return false;
+    }
+    
     try {
-      const response = await fetch(GOOGLE_SHEETS_URL, {
-        method: 'POST',
+      // Crear URL con parámetros
+      const params = new URLSearchParams();
+      params.append('data', JSON.stringify(quote));
+      
+      const fullUrl = GOOGLE_SHEETS_URL + '?' + params.toString();
+      log('URL de petición:', fullUrl.substring(0, 150) + '...[TRUNCADA]');
+      
+      log('📤 Enviando petición...');
+      
+      const response = await fetch(fullUrl, {
+        method: 'GET',
+        redirect: 'follow',
         headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(quote),
-        mode: 'no-cors' // Necesario para Google Apps Script
+          'Accept': 'text/html,application/json,text/plain,*/*'
+        }
       });
       
-      // Con mode: 'no-cors', no podemos leer la respuesta, 
-      // pero si no hay error en el fetch, asumimos éxito
-      return true;
+      log('📥 Respuesta recibida');
+      log('Status:', response.status);
+      log('Status Text:', response.statusText);
+      log('Headers:', Object.fromEntries([...response.headers.entries()]));
+      
+      if (response.ok) {
+        const result = await response.text();
+        log('✅ Respuesta exitosa:', result);
+        
+        // Intentar parsear como JSON
+        try {
+          const jsonResult = JSON.parse(result);
+          log('📋 Respuesta JSON:', jsonResult);
+          
+          if (jsonResult.success === true) {
+            log('🎉 ÉXITO: Datos guardados en Google Sheets');
+            return true;
+          } else {
+            log('⚠️ Respuesta indica fallo:', jsonResult);
+            return false;
+          }
+        } catch (parseError) {
+          log('📝 Respuesta no es JSON, pero request fue exitoso');
+          // Si la respuesta contiene texto que indica éxito
+          if (result.includes('success') || result.includes('guardado')) {
+            log('🎉 Parece que fue exitoso basado en el contenido');
+            return true;
+          }
+          return true; // Asumir éxito si no hay error HTTP
+        }
+      } else {
+        log('❌ Error HTTP:', response.status, response.statusText);
+        
+        // Intentar leer el error
+        try {
+          const errorText = await response.text();
+          log('📄 Contenido del error:', errorText);
+        } catch (readError) {
+          log('No se pudo leer el contenido del error');
+        }
+        
+        return false;
+      }
+      
     } catch (error) {
-      console.error('Error enviando a Google Sheets:', error);
+      log('💥 EXCEPCIÓN en fetch:', error.toString());
+      log('Stack trace:', error.stack);
+      
+      // Mostrar error al usuario solo en modo debug
+      if (debugMode) {
+        alert('Error de conexión con Google Sheets:\n' + error.toString() + '\n\nRevisa la consola para más detalles.');
+      }
+      
       return false;
     }
   }
@@ -439,11 +516,45 @@
   // ========== INICIALIZACIÓN ==========
   window.onload = function() {
     renderLog();
+    
     // Verificar configuración de Google Sheets
     if (GOOGLE_SHEETS_URL.includes('TU_URL_DE_GOOGLE_APPS_SCRIPT_AQUI')) {
-      console.warn('⚠️ Recuerda configurar la URL de Google Apps Script en la variable GOOGLE_SHEETS_URL');
+      log('⚠️ ADVERTENCIA: URL de Google Apps Script no configurada');
+      
+      // Mostrar aviso visual
+      const header = document.querySelector('header h1');
+      if (header) {
+        header.innerHTML = 'Nueva Cotización <span style="color: orange; font-size: 12px;">(⚠️ Google Sheets no configurado)</span>';
+      }
+    } else {
+      log('✅ URL de Google Apps Script configurada');
+      
+      // Probar conectividad
+      testGoogleSheetsConnection();
     }
   };
+  
+  // Función para probar la conexión con Google Sheets
+  async function testGoogleSheetsConnection() {
+    try {
+      log('🔗 Probando conexión con Google Sheets...');
+      
+      const response = await fetch(GOOGLE_SHEETS_URL, {
+        method: 'GET',
+        redirect: 'follow'
+      });
+      
+      if (response.ok) {
+        const result = await response.text();
+        log('✅ Conexión exitosa con Google Sheets');
+        log('Respuesta del servidor:', result);
+      } else {
+        log('⚠️ Problema de conexión:', response.status);
+      }
+    } catch (error) {
+      log('❌ Error de conexión:', error.toString());
+    }
+  }
 </script>
 </body>
 </html>
