@@ -442,7 +442,7 @@
     renderLog();
   }
 
-  // ========== GENERACIÓN DE PDF ==========
+  // ========== GENERACIÓN DE PDF PROFESIONAL ==========
   async function downloadPDF(id=null){
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({unit:'pt', format:'a4'});
@@ -457,16 +457,68 @@
       email: document.getElementById('email').value.trim(),
     };
 
-    // Encabezado
-    doc.setFontSize(16);
-    doc.text('COTIZACIÓN', 40, 40);
+    // ==========  DISEÑO PROFESIONAL  ==========
+    
+    // 1. HEADER CON BARRA SUPERIOR AZUL
+    doc.setFillColor(28, 55, 90); // Azul corporativo
+    doc.rect(0, 0, 595, 80, 'F');
+    
+    // Logo placeholder - puedes agregar tu logo aquí
+    doc.setFillColor(255, 255, 255);
+    doc.rect(40, 20, 120, 40, 'F');
+    doc.setFontSize(10);
+    doc.setTextColor(28, 55, 90);
+    doc.text('LUTHIPLAST', 100, 45, { align: 'center' });
+    
+    // Información de la empresa en el header
     doc.setFontSize(11);
-    doc.text(`Cliente: ${meta.cliente || '-'}`, 40, 64);
-    doc.text(`Ruc: ${meta.ruc || '-'}`, 40, 80);
-    doc.text(`Teléfonos: ${[meta.tel1,meta.tel2].filter(Boolean).join(' / ') || '-'}`, 40, 96);
-    doc.text(`Email: ${meta.email || '-'}`, 40, 112);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont(undefined, 'bold');
+    doc.text('LUTHIPLAST S.A.C.', 180, 35);
+    doc.setFont(undefined, 'normal');
+    doc.setFontSize(9);
+    doc.text('RUC: 20123456789', 180, 48);
+    doc.text('Av. Industrial 123, Lima - Perú', 180, 58);
+    doc.text('Tel: (01) 234-5678 | ventas@luthiplast.com', 180, 68);
+    
+    // COTIZACIÓN - número y fecha
+    doc.setFontSize(16);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont(undefined, 'bold');
+    doc.text('COTIZACIÓN', 550, 40, { align: 'right' });
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    const cotId = q?.id || `COT-${Date.now()}`;
+    const fecha = new Date().toLocaleDateString('es-PE');
+    doc.text(`N° ${cotId}`, 550, 52, { align: 'right' });
+    doc.text(`Fecha: ${fecha}`, 550, 64, { align: 'right' });
 
-    // Tabla
+    // 2. SECCIÓN DE CLIENTE - con fondo gris suave
+    doc.setFillColor(248, 249, 250);
+    doc.rect(40, 100, 515, 80, 'F');
+    
+    // Borde izquierdo azul para la sección
+    doc.setFillColor(28, 55, 90);
+    doc.rect(40, 100, 4, 80, 'F');
+    
+    doc.setFontSize(12);
+    doc.setTextColor(28, 55, 90);
+    doc.setFont(undefined, 'bold');
+    doc.text('INFORMACIÓN DEL CLIENTE', 55, 120);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(60, 60, 60);
+    doc.setFont(undefined, 'normal');
+    
+    // Información del cliente en dos columnas
+    doc.text(`Cliente: ${meta.cliente || 'No especificado'}`, 55, 140);
+    doc.text(`RUC: ${meta.ruc || 'No especificado'}`, 320, 140);
+    doc.text(`Email: ${meta.email || 'No especificado'}`, 55, 155);
+    
+    const telefonos = [meta.tel1, meta.tel2].filter(Boolean).join(' / ') || 'No especificado';
+    doc.text(`Teléfonos: ${telefonos}`, 320, 155);
+
+    // 3. TABLA DE PRODUCTOS con diseño profesional
     const rows = (q ? q.rows : [...document.querySelectorAll('#body tr')].map(tr => ({
       codigo: tr.children[0].querySelector('input').value,
       cant: tr.children[1].querySelector('input').value,
@@ -476,29 +528,113 @@
       total: tr.children[5].textContent
     })));
 
-    const body = rows.map(r => [r.codigo||'', r.cant||'', r.desc||'', money(num(r.unit)), r.m2||'0.00', r.total||'0.00']);
+    const body = rows.map(r => [
+      r.codigo || '',
+      r.cant || '',
+      r.m2 || '0.00',
+      r.desc || '',
+      `S/ ${money(num(r.unit))}`,
+      `S/ ${r.total || '0.00'}`
+    ]);
 
     doc.autoTable({
-      startY: 140,
-      head: [['CODIGO','CANT.','DESCRIPCION','PRECIO UNIT.','m²','PRECIO TOTAL']],
+      startY: 200,
+      head: [['CÓDIGO', 'CANT.', 'M²', 'DESCRIPCIÓN', 'PRECIO UNIT.', 'PRECIO TOTAL']],
       body,
-      styles: { fontSize:10, cellPadding:4 },
-      headStyles: { fillColor:[243,244,246], textColor:20 },
-      columnStyles: { 1:{halign:'right'}, 3:{halign:'right'}, 4:{halign:'right'}, 5:{halign:'right'} }
+      theme: 'grid',
+      styles: { 
+        fontSize: 9, 
+        cellPadding: 8,
+        textColor: [60, 60, 60],
+        lineColor: [220, 220, 220],
+        lineWidth: 0.5
+      },
+      headStyles: { 
+        fillColor: [28, 55, 90], 
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: 9
+      },
+      columnStyles: { 
+        0: { cellWidth: 70 },
+        1: { halign: 'center', cellWidth: 45 },
+        2: { halign: 'center', cellWidth: 45 },
+        3: { cellWidth: 200 },
+        4: { halign: 'right', cellWidth: 90 },
+        5: { halign: 'right', cellWidth: 100, fontStyle: 'bold' }
+      },
+      alternateRowStyles: {
+        fillColor: [248, 249, 250]
+      }
     });
 
-    // Totales
-    const y = doc.lastAutoTable.finalY + 12;
+    // 4. TOTALES con diseño elegante
+    const finalY = doc.lastAutoTable.finalY + 20;
+    
+    // Caja para totales
+    doc.setFillColor(248, 249, 250);
+    doc.rect(350, finalY, 205, 90, 'F');
+    doc.setDrawColor(220, 220, 220);
+    doc.rect(350, finalY, 205, 90, 'S');
+
     const subtotal = q ? q.subtotal : document.getElementById('vSubtotal').textContent;
-    const igv      = q ? q.igv      : document.getElementById('vIgv').textContent;
-    const total    = q ? q.total    : document.getElementById('vTotal').textContent;
+    const igv = q ? q.igv : document.getElementById('vIgv').textContent;
+    const total = q ? q.total : document.getElementById('vTotal').textContent;
 
-    doc.setFontSize(11);
-    doc.text(`SUBTOTAL: S/ ${subtotal}`, 400, y);
-    doc.text(`IGV 18%: S/ ${igv}`, 400, y+16);
-    doc.setFontSize(12);
-    doc.text(`TOTAL: S/ ${total}`, 400, y+36);
+    doc.setFontSize(10);
+    doc.setTextColor(60, 60, 60);
+    
+    // Subtotal
+    doc.text('Subtotal:', 365, finalY + 20);
+    doc.text(`S/ ${subtotal}`, 540, finalY + 20, { align: 'right' });
+    
+    // IGV
+    doc.text('IGV (18%):', 365, finalY + 38);
+    doc.text(`S/ ${igv}`, 540, finalY + 38, { align: 'right' });
+    
+    // Línea separadora
+    doc.setDrawColor(28, 55, 90);
+    doc.setLineWidth(1);
+    doc.line(365, finalY + 50, 540, finalY + 50);
+    
+    // Total
+    doc.setFontSize(14);
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(28, 55, 90);
+    doc.text('TOTAL:', 365, finalY + 70);
+    doc.text(`S/ ${total}`, 540, finalY + 70, { align: 'right' });
 
+    // 5. PIE DE PÁGINA con información adicional
+    const pageHeight = doc.internal.pageSize.height;
+    
+    // Línea separadora superior
+    doc.setDrawColor(220, 220, 220);
+    doc.setLineWidth(0.5);
+    doc.line(40, pageHeight - 80, 555, pageHeight - 80);
+    
+    doc.setFontSize(9);
+    doc.setTextColor(120, 120, 120);
+    doc.setFont(undefined, 'normal');
+    
+    // Información del pie de página
+    doc.text('• Cotización válida por 30 días', 40, pageHeight - 65);
+    doc.text('• Precios incluyen IGV', 40, pageHeight - 52);
+    doc.text('• Tiempo de entrega: 7-10 días hábiles', 40, pageHeight - 39);
+    
+    // Información de contacto en el pie
+    doc.text('Para consultas: ventas@luthiplast.com | Tel: (01) 234-5678', 300, pageHeight - 65);
+    doc.text('Síguenos en nuestras redes sociales', 300, pageHeight - 52);
+    
+    // Número de página
+    doc.setFontSize(8);
+    doc.text('Página 1 de 1', 555, pageHeight - 25, { align: 'right' });
+    
+    // Marca de agua sutil (opcional)
+    doc.setFontSize(8);
+    doc.setTextColor(200, 200, 200);
+    doc.text('Generado automáticamente por Sistema Luthiplast', 40, pageHeight - 25);
+
+    // Guardar el PDF
     doc.save((q?.id || 'cotizacion') + '.pdf');
   }
 
