@@ -442,7 +442,7 @@
     renderLog();
   }
 
-  // ========== GENERACIÓN DE PDF MEJORADA ==========
+  // ========== GENERACIÓN DE PDF MEJORADA CON FUENTE OPTIMIZADA ==========
   async function downloadPDF(id=null){
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({unit:'pt', format:'a4'});
@@ -572,7 +572,7 @@
       tableWidth: 'wrap'
     });
 
-    // TOTALES (parte inferior derecha)
+    // TOTALES (parte inferior derecha) - FUENTES OPTIMIZADAS
     const tableEndY = doc.lastAutoTable.finalY + 15;
     const subtotal = q ? q.subtotal : document.getElementById('vSubtotal').textContent;
     const igv = q ? q.igv : document.getElementById('vIgv').textContent;
@@ -590,21 +590,24 @@
     doc.line(480, tableEndY, 480, tableEndY + 75);
 
     doc.setTextColor(0, 0, 0);
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'normal');
     
-    // Etiquetas (centradas en la columna izquierda)
+    // **ETIQUETAS CON FUENTE REDUCIDA**
+    doc.setFontSize(9); // Reducido de 11 a 9
+    doc.setFont('helvetica', 'normal');
     doc.text('SUBTOTAL:', 415, tableEndY + 17, { align: 'center' });
     doc.text('IGV (18%):', 415, tableEndY + 42, { align: 'center' });
     doc.setFont('helvetica', 'bold');
     doc.text('TOTAL:', 415, tableEndY + 67, { align: 'center' });
 
-    // Valores (centrados en la columna derecha)
+    // **VALORES CON FUENTE REDUCIDA**
     doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8); // Reducido de 11 a 8 para valores normales
     doc.text(`S/ ${subtotal}`, 517, tableEndY + 17, { align: 'center' });
     doc.text(`S/ ${igv}`, 517, tableEndY + 42, { align: 'center' });
+    
+    // Total con fuente ligeramente más grande pero aún compacta
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
+    doc.setFontSize(9); // Reducido de 12 a 9 para el total
     doc.text(`S/ ${total}`, 517, tableEndY + 67, { align: 'center' });
 
     // TÉRMINOS Y CONDICIONES
