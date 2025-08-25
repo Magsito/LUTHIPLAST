@@ -466,17 +466,25 @@
     doc.setFillColor(...azulOscuro);
     doc.rect(0, 0, 595, 80, 'F');
 
-    // Logo y datos de la empresa (lado izquierdo)
+    // AGREGAR LOGO
+    try {
+      doc.addImage('Diseño sin título.png', 'PNG', 40, 15, 50, 50);
+    } catch (error) {
+      console.log('Logo no pudo cargarse:', error);
+    }
+
+    // Logo y datos de la empresa (ajustado para dar espacio al logo)
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
-    doc.text('IMPORTACIONES LUTHIPLAST HRL', 40, 30);
+    // Movido más a la derecha para dar espacio al logo
+    doc.text('IMPORTACIONES LUTHIPLAST HRL', 110, 30);
     
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
-    doc.text('Magdalena del Mar - Jr. Castilla 456', 40, 45);
-    doc.text('Teléfono: 992 753 063 | E-mail: miguel@luthiplast.com', 40, 58);
-    doc.text('www.luthiplast.com', 40, 71);
+    doc.text('Magdalena del Mar - Jr. Castilla 456', 110, 45);
+    doc.text('Teléfono: 992 753 063 | E-mail: miguel@luthiplast.com', 110, 58);
+    doc.text('www.luthiplast.com', 110, 71);
 
     // TÍTULO COTIZACIÓN
     doc.setFillColor(...grisClaro);
