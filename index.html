@@ -482,7 +482,7 @@
     
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
-    doc.text('Magdalena del Mar - Jr. Castilla 456', 110, 45);
+    doc.text('Magdalena del Mar - Jr. Salaverry 360', 110, 45);
     doc.text('Teléfono: 992 753 063 | E-mail: miguel@luthiplast.com', 110, 58);
     doc.text('www.luthiplast.com', 110, 71);
 
@@ -497,7 +497,7 @@
     // Información de fechas (lado derecho del título)
     const hoy = new Date();
     const fechaHoy = hoy.toLocaleDateString('es-PE');
-    const fechaVencimiento = new Date(hoy.getTime() + (30 * 24 * 60 * 60 * 1000)).toLocaleDateString('es-PE');
+    const fechaVencimiento = new Date(hoy.getTime() + (7 * 24 * 60 * 60 * 1000)).toLocaleDateString('es-PE');
 
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
